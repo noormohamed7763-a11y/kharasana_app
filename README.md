@@ -1,16 +1,90 @@
-# kharasana_app
+# Kharasana App
 
-A new Flutter project.
+نظرة عامة
+-----------
 
-## Getting Started
+Kharasana هو تطبيق Flutter لإدارة وإرسال طلبات الخرسانة الجاهزة — يتضمن تسجيل الدخول، لوحة عميل، لوحة سائق، ومكوّنات لإدارة الطلبات.
 
-This project is a starting point for a Flutter application.
+الميزات الرئيسية
+-----------------
+- شاشة تسجيل الدخول والتسجيل مع إدارة جلسة JWT.
+- لوحة عميل لعرض المصانع وأنواع الخلطات وبدء طلبات متعددة الخطوات.
+- سِجل طلبات مع تفاصيل، حالة، وزمن التسليم.
+- لوحة سائق لإدارة التوصيل وتحديث الحالة.
+- نظام Theme مركزي، تخزين آمن، وطبقة شبكة مبنية على Dio.
 
-A few resources to get you started if this is your first Flutter project:
+النسخة الحالية
+----------------
+- Release: `v1.0.0`
+- الملخّص: دعم كامل للتدفق الأساسي للتطبيق (Authentication, Client, Orders, Driver, Profile).
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+التقنية
+-------
+- Flutter
+- Riverpod (حالة)
+- Dio (شبكة)
+- GoRouter (التنقل)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+المتطلبات
+---------
+- Flutter SDK >= 3.0
+- أدوات منصة Android/iOS مضبوطة (حسب حاجتك للـ emulators أو الأجهزة الحقيقية)
+
+التثبيت والتشغيل
+------------------
+1. استنساخ المستودع:
+
+```bash
+git clone https://github.com/noormohamed7763-a11y/kharasana_app.git
+cd kharasana_app
+```
+
+2. تثبيت الحزم:
+
+```bash
+flutter pub get
+```
+
+3. تشغيل التطبيق (Android):
+
+```bash
+flutter run
+```
+
+اختبارات
+--------
+لتشغيل الاختبارات المحلية:
+
+```bash
+flutter test
+```
+
+مساهمة
+-------
+مرحبًا بالمساهمات! اتبع الخطوات التالية:
+
+1. افتح فرعًا جديدًا: `git checkout -b feat/your-feature`
+2. أضف تغييراتك، اكتب commit واضحًا، ثم ادفع الفرع.
+3. افتح Pull Request لدمج التغييرات.
+
+إنشاء Release على GitHub
+-------------------------
+لقد أنشأنا الوسم `v1.0.0` محليًا وتم دفعه إلى المستودع. لإنشاء صفحة Release رسمية على GitHub يمكنك إما:
+
+- استخدام GitHub Web: اذهب إلى قسم `Releases` في المستودع واضغط `Draft a new release`، اختر الوسم `v1.0.0` وأضف ملاحظات الإصدار.
+- أو استخدام GitHub CLI إذا مثبتًا:
+
+```bash
+gh release create v1.0.0 --title "v1.0.0" --notes "Initial stable release: authentication, client, orders, driver, profile"
+```
+
+ملاحظات إضافية
+---------------
+- تأكد من إعداد `local.properties` وملفات التكوين الخاصة بمنصات Android/iOS قبل بناء الإصدارات النهائية.
+- إذا تريد، أستطيع أن أنشئ Release عبر API مباشرةً (أحتاج توكن GitHub آمن منك)، أو أستخدم `gh` إن أردت أن أثبته وأنفّذ الأمر هنا.
+
+الرخصة
+------
+أضف ملف `LICENSE` بالمستودع إذا أردت رخصة مفتوحة المصدر؛ أخبرني أي رخصة تفضل (MIT/Apache-2.0/GPL-3.0) وسأدرجها.
+
+شكراً لاستخدامك Kharasana — أخبرني بما تريد فعله بعد ذلك (إنشاء Release رسمي، إضافة badges، أو إضافة ملف LICENSE).
