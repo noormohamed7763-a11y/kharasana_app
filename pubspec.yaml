@@ -1,0 +1,56 @@
+name: kharasana_app
+description: تطبيق خرسانة لطلب وإدارة شحنات الخرسانة الجاهزة
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+
+  # Networking
+  dio: ^5.4.3+1
+
+  # Routing
+  go_router: ^14.1.4
+
+  # Secure Storage for JWT
+  flutter_secure_storage: ^9.2.2
+
+  # UI & Helpers
+  cached_network_image: ^3.3.1
+  intl: 0.20.2
+  cupertino_icons: ^1.0.8
+
+  # فتح الروابط الخارجية (tel: للاتصال بالعميل)
+  url_launcher: ^6.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Regular.ttf
+        - asset: assets/fonts/Cairo-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Cairo-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Cairo-Bold.ttf
+          weight: 700
+
+  assets:
+    - assets/images/
+    - assets/icons/
