@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
+import '../providers/auth_controller.dart'; // Add this import
+import '../providers/auth_state.dart'; // Add this import
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -15,9 +17,37 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _phoneCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _confirmPassCtrl = TextEditingController(); // Add this controller
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
+    _confirmPassCtrl.dispose(); // Dispose the new controller
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Watch the auth state to react to changes
+    ref.listen<AuthState>(authControllerProvider, (previous, next) {
+      if (next is AuthRegistered) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم إنشاء الحساب بنجاح! سيتم توجيهك لتسجيل الدخول.')),
+        );
+        context.go(AppRoutes.login);
+      } else if (next is AuthError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.message)),
+        );
+      }
+    });
+
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState is AuthLoading;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('إنشاء حساب'),
@@ -57,14 +87,32 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   decoration: const InputDecoration(labelText: 'كلمة المرور'),
                   obscureText: true,
                 ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _confirmPassCtrl, // New field for password confirmation
+                  decoration: const InputDecoration(labelText: 'تأكيد كلمة المرور'),
+                  obscureText: true,
+                ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('سيتم تنفيذ إنشاء الحساب لاحقاً')),
-                    );
-                  },
-                  child: const Text('تسجيل'),
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (_passCtrl.text != _confirmPassCtrl.text) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('كلمتا المرور غير متطابقتين')),
+                            );
+                            return;
+                          }
+                          await ref.read(authControllerProvider.notifier).register(
+                                fullName: _nameCtrl.text,
+                                phone: _phoneCtrl.text,
+                                email: _emailCtrl.text,
+                                password: _passCtrl.text,
+                                confirmPassword: _confirmPassCtrl.text,
+                              );
+                        },
+                  child: isLoading ? const CircularProgressIndicator() : const Text('تسجيل'),
                 ),
                 const SizedBox(height: 16),
                 TextButton(
