@@ -281,7 +281,8 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 18),
-                          Row(
+                          Wrap(
+                            spacing: 8,
                             children: [
                               ElevatedButton(
                                 onPressed: () => context.push(AppRoutes.clientFactories),
@@ -302,7 +303,6 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                                   ),
                                 ),
                               ),
-                              const Spacer(),
                               TextButton.icon(
                                 onPressed: () => context.push(AppRoutes.clientOrderCreate),
                                 icon: const Icon(Icons.add, color: Colors.white, size: 18),

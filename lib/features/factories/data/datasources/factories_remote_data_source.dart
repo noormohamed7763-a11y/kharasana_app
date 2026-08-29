@@ -8,13 +8,20 @@ class FactoriesRemoteDataSource {
   final Dio _dio;
 
   Future<List<FactoryDto>> getFactories() async {
-    final response = await _dio.get(ApiEndpoints.factories);
-    final apiResponse = ApiResponse<List<FactoryDto>>.fromJson(
+    try {
+      final response = await _dio.get(ApiEndpoints.factories).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw Exception('انتهت مهلة تحميل المصانع'),
+      );
+      final apiResponse = ApiResponse<List<FactoryDto>>.fromJson(
       response.data as Map<String, dynamic>,
       (json) => (json as List<dynamic>)
           .map((e) => FactoryDto.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
     return apiResponse.data ?? <FactoryDto>[];
+    } catch (e) {
+      throw Exception('حدث خطأ في تحميل المصانع: $e');
+    }
   }
 }

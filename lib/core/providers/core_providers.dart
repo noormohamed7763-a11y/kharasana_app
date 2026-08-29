@@ -12,20 +12,30 @@ import '../../features/concrete_types/data/datasources/concrete_types_remote_dat
 import '../../features/orders/data/datasources/orders_remote_data_source.dart';
 import '../../features/orders/data/repositories/orders_repository_impl.dart';
 import '../../features/orders/domain/repositories/orders_repository.dart';
+
+// ✅ استيراد ملفات Users
 import '../../features/users/data/datasources/users_remote_data_source.dart';
 import '../../features/users/data/repositories/profile_repository_impl.dart';
 import '../../features/users/domain/repositories/profile_repository.dart';
 
+// ============================================================
+// 🔐 Storage Providers
+// ============================================================
 final secureStorageProvider = Provider<SecureStorageService>((ref) {
   throw UnimplementedError('يُهيَّأ في main.dart');
 });
 
+// ============================================================
+// 🌐 Network Providers
+// ============================================================
 final dioClientProvider = Provider<Dio>((ref) {
   final secureStorage = ref.watch(secureStorageProvider);
   return DioClient(secureStorage).dio;
 });
 
-// ---- Auth ----
+// ============================================================
+// 🔑 Auth Providers
+// ============================================================
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
   return AuthRemoteDataSource(ref.watch(dioClientProvider));
 });
@@ -37,18 +47,24 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   );
 });
 
-// ---- Factories ----
+// ============================================================
+// 🏭 Factories Providers
+// ============================================================
 final factoriesRemoteDataSourceProvider = Provider<FactoriesRemoteDataSource>((ref) {
   return FactoriesRemoteDataSource(ref.watch(dioClientProvider));
 });
 
-// ---- ConcreteTypes ----
+// ============================================================
+// 🧱 Concrete Types Providers
+// ============================================================
 final concreteTypesRemoteDataSourceProvider =
     Provider<ConcreteTypesRemoteDataSource>((ref) {
   return ConcreteTypesRemoteDataSource(ref.watch(dioClientProvider));
 });
 
-// ---- Orders ----
+// ============================================================
+// 📦 Orders Providers
+// ============================================================
 final ordersRemoteDataSourceProvider = Provider<OrdersRemoteDataSource>((ref) {
   return OrdersRemoteDataSource(ref.watch(dioClientProvider));
 });
@@ -57,19 +73,23 @@ final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {
   return OrdersRepositoryImpl(ref.watch(ordersRemoteDataSourceProvider));
 });
 
-// ---- Users / Profile ----
+// ============================================================
+// 👤 Users / Profile Providers
+// ============================================================
 final usersRemoteDataSourceProvider = Provider<UsersRemoteDataSource>((ref) {
   return UsersRemoteDataSource(ref.watch(dioClientProvider));
 });
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
-  return ProfileRepositoryImpl(ref.watch(usersRemoteDataSourceProvider));
+  return ProfileRepositoryImpl(
+    ref.watch(usersRemoteDataSourceProvider),
+    ref.watch(secureStorageProvider),
+  );
 });
 
-/// بيانات المستخدم المسجَّل دخوله حالياً، من التخزين الآمن.
-///
-/// ⚠️ لا نستخدم الخادم هنا: `GET /api/Users/me` يُعيد 405 و
-/// `GET /api/Users/{id}` يُعيد 403 لدور Driver — راجع [SessionUser].
+// ============================================================
+// 👤 Session User Provider (من التخزين المحلي)
+// ============================================================
 final sessionUserProvider = FutureProvider.autoDispose<SessionUser>((ref) async {
   final storage = ref.watch(secureStorageProvider);
   final userId = await storage.readUserId();
@@ -78,15 +98,37 @@ final sessionUserProvider = FutureProvider.autoDispose<SessionUser>((ref) async 
   return SessionUser(userId: userId, fullName: fullName, role: role);
 });
 
-// ---- Simple data providers ----
+// ============================================================
+// 📋 Simple Data Providers (تستخدم في الشاشات)
+// ============================================================
 final factoriesListProvider = FutureProvider.autoDispose((ref) async {
-  final dataSource = ref.watch(factoriesRemoteDataSourceProvider);
-  final factories = await dataSource.getFactories();
-  return factories.where((f) => f.isActive).toList();
+  try {
+    final dataSource = ref.watch(factoriesRemoteDataSourceProvider);
+    final factories = await dataSource.getFactories().timeout(
+      const Duration(seconds: 10),
+      onTimeout: () => throw Exception('انتهت مهلة تحميل المصانع'),
+    );
+    return factories.where((f) => f.isActive).toList();
+  } catch (e) {
+    throw Exception('حدث خطأ في تحميل المصانع: $e');
+  }
 });
 
 final concreteTypesListProvider = FutureProvider.autoDispose((ref) async {
   final dataSource = ref.watch(concreteTypesRemoteDataSourceProvider);
   final types = await dataSource.getConcreteTypes();
   return types.where((t) => t.isActive).toList();
+});
+
+// ============================================================
+// 🔄 Refresh Providers (لتحديث البيانات)
+// ============================================================
+final refreshFactoriesProvider = FutureProvider.autoDispose((ref) async {
+  ref.invalidate(factoriesListProvider);
+  return await ref.watch(factoriesListProvider.future);
+});
+
+final refreshConcreteTypesProvider = FutureProvider.autoDispose((ref) async {
+  ref.invalidate(concreteTypesListProvider);
+  return await ref.watch(concreteTypesListProvider.future);
 });

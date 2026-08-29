@@ -490,6 +490,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                   // Submit Button
                   SizedBox(
                     height: 52,
+                    width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _isSubmitting ? null : _submitOrder,
                       style: ElevatedButton.styleFrom(
@@ -508,6 +509,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                             )
                           : const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   'إرسال الطلب',

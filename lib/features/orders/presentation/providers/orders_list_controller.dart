@@ -60,8 +60,12 @@ class OrdersListController extends StateNotifier<OrdersListState> {
 
   Future<void> loadFirstPage() async {
     state = const OrdersListLoading();
-    final result = await _repository.getOrders(pageNumber: 1);
-    switch (result) {
+    try {
+      final result = await _repository.getOrders(pageNumber: 1).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw Exception('انتهت مهلة الاتصال بالخادم'),
+      );
+      switch (result) {
       case Success(data: final paged):
         state = OrdersListLoaded(
           items: paged.items,
@@ -70,6 +74,9 @@ class OrdersListController extends StateNotifier<OrdersListState> {
         );
       case Error(failure: final failure):
         state = OrdersListError(failure.messageAr);
+    }
+    } catch (e) {
+      state = OrdersListError('حدث خطأ أثناء تحميل الطلبات');
     }
   }
 
