@@ -6,7 +6,8 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/api_enums.dart';
 import '../../../../core/utils/result.dart';
-import '../../../../core/widgets/app_widgets.dart';
+import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_text_field.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
