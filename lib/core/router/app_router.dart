@@ -15,48 +15,61 @@ import '../../features/orders/presentation/screens/create_order_screen.dart';
 import '../../features/orders/presentation/screens/order_details_screen.dart';
 import '../../features/orders/presentation/screens/orders_list_screen.dart';
 
+/// قرار التوجيه بحسب الجلسة والدور.
+///
+/// مُخرَج من [buildRouter] ليكون قابلاً للاختبار وحدةً: كسر هذه القواعد
+/// ثغرة أمنية لا خلل واجهة. انظر `test/auth_redirect_test.dart`.
+///
+/// يُرجع المسار المطلوب التوجيه إليه، أو `null` للسماح بالمسار كما هو.
+@visibleForTesting
+Future<String?> resolveAuthRedirect(
+  SecureStorageService secureStorage,
+  String matchedLocation,
+) async {
+  // نسمح بالوصول إلى splash دائماً
+  if (matchedLocation == AppRoutes.splash) return null;
+
+  final hasSession = await secureStorage.hasActiveSession();
+  final isAuthRoute =
+      matchedLocation == AppRoutes.login || matchedLocation == AppRoutes.register;
+
+  // إذا لم يكن هناك جلسة والمستخدم يحاول الوصول إلى صفحة محمية
+  if (!hasSession && !isAuthRoute) {
+    return AppRoutes.login;
+  }
+
+  // إذا كانت هناك جلسة والمستخدم يحاول الوصول إلى login أو register
+  if (hasSession && isAuthRoute) {
+    final role = await secureStorage.readRole();
+    if (role == 'driver') {
+      return AppRoutes.driverHome;
+    } else {
+      return AppRoutes.clientHome;
+    }
+  }
+
+  // منع Client من الوصول إلى Driver routes والعكس
+  if (hasSession) {
+    final role = await secureStorage.readRole();
+    final goingToDriver = matchedLocation.startsWith('/driver');
+    final goingToClient = matchedLocation.startsWith('/client');
+
+    if (role == 'driver' && goingToClient) {
+      return AppRoutes.driverHome;
+    }
+    if (role == 'client' && goingToDriver) {
+      return AppRoutes.clientHome;
+    }
+  }
+
+  return null;
+}
+
 GoRouter buildRouter(SecureStorageService secureStorage) {
   return GoRouter(
     initialLocation: AppRoutes.splash,
-    redirect: (context, state) async {
-      // نسمح بالوصول إلى splash دائماً
-      if (state.matchedLocation == AppRoutes.splash) return null;
-
-      final hasSession = await secureStorage.hasActiveSession();
-      final isAuthRoute = state.matchedLocation == AppRoutes.login ||
-          state.matchedLocation == AppRoutes.register;
-
-      // إذا لم يكن هناك جلسة والمستخدم يحاول الوصول إلى صفحة محمية
-      if (!hasSession && !isAuthRoute) {
-        return AppRoutes.login;
-      }
-
-      // إذا كانت هناك جلسة والمستخدم يحاول الوصول إلى login أو register
-      if (hasSession && isAuthRoute) {
-        final role = await secureStorage.readRole();
-        if (role == 'driver') {
-          return AppRoutes.driverHome;
-        } else {
-          return AppRoutes.clientHome;
-        }
-      }
-
-      // منع Client من الوصول إلى Driver routes والعكس
-      if (hasSession) {
-        final role = await secureStorage.readRole();
-        final goingToDriver = state.matchedLocation.startsWith('/driver');
-        final goingToClient = state.matchedLocation.startsWith('/client');
-
-        if (role == 'driver' && goingToClient) {
-          return AppRoutes.driverHome;
-        }
-        if (role == 'client' && goingToDriver) {
-          return AppRoutes.clientHome;
-        }
-      }
-
-      return null;
-    },
+    redirect: (context, state) =>
+        resolveAuthRedirect(secureStorage, state.matchedLocation),
     routes: [
       // ============================================================
       // Auth Routes
