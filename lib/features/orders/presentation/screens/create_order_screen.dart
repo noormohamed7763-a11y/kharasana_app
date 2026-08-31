@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/providers/core_providers.dart';
 import '../../../../core/utils/api_enums.dart';
 import '../../../client/presentation/widgets/client_bottom_nav_bar.dart';
 import '../providers/order_creation_controller.dart';
 import 'order_success_screen.dart';
+
+final _money = NumberFormat('#,##0', 'en_US');
+final _qty = NumberFormat('#,##0.##', 'en_US');
 
 class CreateOrderScreen extends ConsumerStatefulWidget {
   const CreateOrderScreen({super.key, this.initialFactoryId});
@@ -77,8 +81,17 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       return;
     }
     if (draft.concreteTypeId == null) {
+      // رسالة دقيقة: «اختر النوع» طريق مسدود إن كان المصنع لا يوفّر أنواعاً.
+      final types =
+          ref.read(concreteTypesByFactoryProvider(draft.factoryId!)).valueOrNull;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار نوع الخرسانة')),
+        SnackBar(
+          content: Text(
+            types != null && types.isEmpty
+                ? 'هذا المصنع لا يوفّر أنواع خرسانة حالياً، يرجى اختيار مصنع آخر'
+                : 'يرجى اختيار نوع الخرسانة',
+          ),
+        ),
       );
       return;
     }
@@ -119,7 +132,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   @override
   Widget build(BuildContext context) {
     final factoriesAsync = ref.watch(factoriesListProvider);
-    final concreteTypesAsync = ref.watch(concreteTypesListProvider);
     final draft = ref.watch(orderCreationControllerProvider(widget.initialFactoryId));
     final controller = ref.read(orderCreationControllerProvider(widget.initialFactoryId).notifier);
 
@@ -255,10 +267,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       onChanged: (val) {
                         if (val == null) return;
                         final selectedFactory = factories.firstWhere((f) => f.factoryId == val);
-                        controller.updateDraft((d) => d.copyWith(
-                              factoryId: val,
-                              factoryName: selectedFactory.factoryName,
-                            ));
+                        controller.selectFactory(
+                          factoryId: val,
+                          factoryName: selectedFactory.factoryName,
+                        );
                       },
                     ),
                     loading: () => const Center(child: LinearProgressIndicator()),
@@ -266,32 +278,66 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                   ),
                   const SizedBox(height: 14),
 
-                  // نوع الخرسانة (Concrete Type Dropdown)
+                  // نوع الخرسانة — الأنواع التابعة للمصنع المختار فقط
                   const _FormLabel('نوع الخرسانة'),
-                  concreteTypesAsync.when(
-                    data: (types) => _CustomDropdown<int>(
-                      hint: 'اختر النوع...',
-                      value: draft.concreteTypeId,
-                      items: types
-                          .map((t) => DropdownMenuItem(
-                                value: t.concreteTypeId,
-                                child: Text('${t.name} (قوة ${t.strength})',
-                                    style: const TextStyle(fontSize: 13.5)),
-                              ))
-                          .toList(),
-                      onChanged: (val) {
-                        if (val == null) return;
-                        final selectedType = types.firstWhere((t) => t.concreteTypeId == val);
-                        controller.updateDraft((d) => d.copyWith(
-                              concreteTypeId: val,
-                              concreteTypeName: selectedType.name,
-                              concreteUnitPrice: selectedType.unitPrice,
-                            ));
-                      },
-                    ),
-                    loading: () => const Center(child: LinearProgressIndicator()),
-                    error: (_, __) => const Text('تعذر تحميل أنواع الخرسانة'),
-                  ),
+                  if (draft.factoryId == null)
+                    const _InlineNotice(
+                      icon: Icons.info_outline_rounded,
+                      text: 'اختر المصنع أولاً لعرض أنواع الخرسانة المتاحة لديه',
+                    )
+                  else
+                    ref.watch(concreteTypesByFactoryProvider(draft.factoryId!)).when(
+                          loading: () => const Center(child: LinearProgressIndicator()),
+                          error: (_, __) => const _InlineNotice(
+                            icon: Icons.error_outline_rounded,
+                            text: 'تعذر تحميل أنواع الخرسانة، حاول مرة أخرى',
+                            isError: true,
+                          ),
+                          data: (types) {
+                            if (types.isEmpty) {
+                              return _InlineNotice(
+                                icon: Icons.production_quantity_limits_rounded,
+                                text:
+                                    'لا يوفّر ${draft.factoryName ?? 'هذا المصنع'} أي نوع خرسانة حالياً — يرجى اختيار مصنع آخر.',
+                                isError: true,
+                              );
+                            }
+
+                            // حماية: لا نُسلّم DropdownButton قيمة غير موجودة في
+                            // عناصره (يرمي استثناءً)، مثلاً لو أُلغي تنشيط النوع.
+                            final selectedId =
+                                types.any((t) => t.concreteTypeId == draft.concreteTypeId)
+                                    ? draft.concreteTypeId
+                                    : null;
+
+                            return _CustomDropdown<int>(
+                              hint: 'اختر النوع...',
+                              value: selectedId,
+                              items: types
+                                  .map((t) => DropdownMenuItem(
+                                        value: t.concreteTypeId,
+                                        child: Text(
+                                          '${t.name} · قوة ${t.strength} · '
+                                          '${_money.format(t.unitPrice)} ${AppConstants.currencySymbol}/م³',
+                                          style: const TextStyle(fontSize: 13.5),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ))
+                                  .toList(),
+                              onChanged: (val) {
+                                if (val == null) return;
+                                final selectedType =
+                                    types.firstWhere((t) => t.concreteTypeId == val);
+                                controller.selectConcreteType(
+                                  concreteTypeId: selectedType.concreteTypeId,
+                                  name: selectedType.name,
+                                  unitPrice: selectedType.unitPrice,
+                                );
+                              },
+                            );
+                          },
+                        ),
                   const SizedBox(height: 14),
 
                   // اسم المشروع
@@ -341,9 +387,16 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                               controller: _quantityCtrl,
                               hint: '0',
                               keyboardType: TextInputType.number,
-                              onChanged: (val) => controller.updateDraft(
-                                (d) => d.copyWith(quantity: double.tryParse(val)),
-                              ),
+                              onChanged: (val) {
+                                // محو الحقل يجب أن يمحو الكمية فعلياً — وإلا بقيت
+                                // القيمة القديمة في الطلب والسعر محسوباً عليها.
+                                final parsed = double.tryParse(val.trim());
+                                controller.updateDraft(
+                                  (d) => parsed == null
+                                      ? d.copyWith(clearQuantity: true)
+                                      : d.copyWith(quantity: parsed),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -351,6 +404,16 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     ],
                   ),
                   const SizedBox(height: 14),
+
+                  // تقدير التكلفة — يظهر بمجرد اختيار نوع الخرسانة
+                  if (draft.concreteUnitPrice != null) ...[
+                    _PriceSummaryCard(
+                      unitPrice: draft.concreteUnitPrice!,
+                      quantity: draft.quantity,
+                      total: draft.estimatedTotal,
+                    ),
+                    const SizedBox(height: 14),
+                  ],
 
                   // وصف الموقع
                   const _FormLabel('وصف الموقع'),
@@ -531,6 +594,157 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// تنبيه سطري داخل النموذج — يحلّ محلّ حقل لا يمكن عرضه
+/// (لم يُختر مصنع بعد، أو المصنع بلا أنواع خرسانة).
+class _InlineNotice extends StatelessWidget {
+  const _InlineNotice({
+    required this.icon,
+    required this.text,
+    this.isError = false,
+  });
+
+  final IconData icon;
+  final String text;
+  final bool isError;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = isError ? const Color(0xFFA33A20) : const Color(0xFF8C7A70);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isError ? const Color(0xFFFCEDE8) : const Color(0xFFFAF4EE),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isError ? const Color(0xFFF2CFC4) : const Color(0xFFEFE5DC),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: fg),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 12.5, color: fg, height: 1.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// تقدير التكلفة قبل الإرسال: سعر المصنع للمتر المكعب × الكمية.
+class _PriceSummaryCard extends StatelessWidget {
+  const _PriceSummaryCard({
+    required this.unitPrice,
+    required this.quantity,
+    required this.total,
+  });
+
+  final double unitPrice;
+  final double? quantity;
+  final double? total;
+
+  @override
+  Widget build(BuildContext context) {
+    final qty = quantity;
+    final sum = total;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9EDE2),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEEDCD0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.receipt_long_rounded, size: 18, color: Color(0xFF8A3C04)),
+              SizedBox(width: 8),
+              Text(
+                'تقدير التكلفة',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2C221E),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _row(
+            'سعر المتر المكعب',
+            '${_money.format(unitPrice)} ${AppConstants.currencySymbol}',
+          ),
+          const SizedBox(height: 6),
+          _row('الكمية', qty != null ? '${_qty.format(qty)} م³' : '—'),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Divider(height: 1, color: Color(0xFFE5CFBD)),
+          ),
+          if (sum != null)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'الإجمالي التقديري',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C221E),
+                  ),
+                ),
+                Text(
+                  '${_money.format(sum)} ${AppConstants.currencySymbol}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF8A3C04),
+                  ),
+                ),
+              ],
+            )
+          else
+            const Text(
+              'أدخل الكمية (م³) ليُحسب الإجمالي',
+              style: TextStyle(fontSize: 12, color: Color(0xFF8C7A70)),
+            ),
+          const SizedBox(height: 8),
+          const Text(
+            'تقدير مبني على سعر المصنع المعلن. يعتمد المصنع السعر النهائي بعد مراجعة الطلب.',
+            style: TextStyle(fontSize: 11, color: Color(0xFF8C7A70), height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _row(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12.5, color: Color(0xFF5A4A42)),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF2C221E),
+          ),
+        ),
+      ],
     );
   }
 }
