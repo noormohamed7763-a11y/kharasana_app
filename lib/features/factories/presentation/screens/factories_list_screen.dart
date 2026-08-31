@@ -8,6 +8,7 @@ import '../../../../core/widgets/error_state.dart';
 import '../../../../core/widgets/loading_list.dart';
 import '../../../client/presentation/widgets/client_bottom_nav_bar.dart';
 import '../../../client/presentation/widgets/factory_card.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class FactoriesListScreen extends ConsumerStatefulWidget {
   const FactoriesListScreen({super.key});
@@ -24,7 +25,7 @@ class _FactoriesListScreenState extends ConsumerState<FactoriesListScreen> {
     final factoriesAsync = ref.watch(factoriesListProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF7F2),
+      backgroundColor: AppColors.surfaceAlt,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -32,23 +33,26 @@ class _FactoriesListScreenState extends ConsumerState<FactoriesListScreen> {
         title: const Text(
           'المصانع',
           style: TextStyle(
-            color: Color(0xFF9E4A06),
+            color: AppColors.brand700,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF5A4A42)),
+          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink700),
           onPressed: () {},
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Color(0xFF9E4A06)),
+            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.brand700),
             onPressed: () => context.pop(),
           ),
         ],
       ),
-      bottomNavigationBar: const ClientBottomNavBar(currentIndex: 0),
+      // ‎-1‎: قائمة المصانع ليست إحدى وجهات التنقّل الثلاث. كانت 0 فتُضيء
+      // "الرئيسية" والمستخدم ليس فيها. الشريط يبقى ليسهل الخروج، لكنه
+      // لا يدّعي موقعاً.
+      bottomNavigationBar: const ClientBottomNavBar(currentIndex: -1),
       body: factoriesAsync.when(
         loading: () => const LoadingList(),
         error: (error, stack) => ErrorStateView(
@@ -75,16 +79,16 @@ class _FactoriesListScreenState extends ConsumerState<FactoriesListScreen> {
                       child: Container(
                         height: 48,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.white,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFEFE5DC)),
+                          border: Border.all(color: AppColors.border),
                         ),
                         child: TextField(
                           onChanged: (val) => setState(() => _searchQuery = val.trim()),
                           decoration: const InputDecoration(
                             hintText: 'بحث عن مصنع...',
-                            hintStyle: TextStyle(fontSize: 13, color: Color(0xFF8C7A70)),
-                            prefixIcon: Icon(Icons.search_rounded, color: Color(0xFF8C7A70), size: 22),
+                            hintStyle: TextStyle(fontSize: 14, color: AppColors.ink500),
+                            prefixIcon: Icon(Icons.search_rounded, color: AppColors.ink300, size: 22),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
@@ -98,12 +102,12 @@ class _FactoriesListScreenState extends ConsumerState<FactoriesListScreen> {
                       height: 48,
                       width: 48,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFEFE5DC)),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.tune_rounded, color: Color(0xFF8A3C04), size: 22),
+                        icon: const Icon(Icons.tune_rounded, color: AppColors.brand800, size: 22),
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('تم تفعيل التصفية التلقائية')),
@@ -122,15 +126,15 @@ class _FactoriesListScreenState extends ConsumerState<FactoriesListScreen> {
                     const Text(
                       'المصانع المتاحة',
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C221E),
+                        color: AppColors.ink900,
                       ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF9EDE2),
+                        color: AppColors.surfaceSunken,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -138,7 +142,7 @@ class _FactoriesListScreenState extends ConsumerState<FactoriesListScreen> {
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF8A3C04),
+                          color: AppColors.brand800,
                         ),
                       ),
                     ),

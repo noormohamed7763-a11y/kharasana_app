@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../providers/order_details_provider.dart';
+import '../../../../core/utils/app_format.dart';
 
 class OrderDetailsScreen extends ConsumerWidget {
   const OrderDetailsScreen({super.key, required this.orderId});
@@ -86,9 +86,13 @@ class OrderDetailsScreen extends ConsumerWidget {
                 _InfoCard([
                   _InfoRow('المصنع', order.factoryName),
                   _InfoRow('نوع الخرسانة', order.concreteTypeName),
-                  _InfoRow('الكمية', '${order.quantity.toStringAsFixed(0)} م³'),
+                  _InfoRow('الكمية', AppFormat.cubicMetres(order.quantity)),
                   _InfoRow('نوع البلاطة', order.slabType.arabicLabel),
-                  _InfoRow('طريقة النقل', order.transportMethod.arabicLabel),
+                  _InfoRow(
+                    'طريقة النقل',
+                    order.transportMethod.arabicLabel,
+                    icon: order.transportMethod.icon,
+                  ),
                   _InfoRow('المضخة', order.needPump ? 'نعم' : 'لا'),
                   if (order.needPump && order.floorNumber != null)
                     _InfoRow('الطابق', order.floorNumber!.toString()),
@@ -115,13 +119,13 @@ class OrderDetailsScreen extends ConsumerWidget {
                   _InfoRow(
                     'سعر المتر المكعب',
                     order.unitPrice != null
-                        ? '${order.unitPrice!.toStringAsFixed(0)} ${AppConstants.currencySymbol}'
+                        ? AppFormat.money(order.unitPrice!)
                         : 'قيد التسعير',
                   ),
                   _InfoRow(
                     'الإجمالي',
                     order.totalPrice != null
-                        ? '${order.totalPrice!.toStringAsFixed(0)} ${AppConstants.currencySymbol}'
+                        ? AppFormat.money(order.totalPrice!)
                         : 'قيد التحديد',
                     isBold: true,
                   ),
@@ -191,10 +195,13 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow(this.label, this.value, {this.isBold = false});
+  const _InfoRow(this.label, this.value, {this.isBold = false, this.icon});
   final String label;
   final String value;
   final bool isBold;
+
+  /// أيقونة اختيارية قبل القيمة — بديل الإيموجي الذي كان مدسوساً في النصّ.
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -205,12 +212,23 @@ class _InfoRow extends StatelessWidget {
         children: [
           Text(label, style: AppTextStyles.bodyMedium),
           Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: isBold
-                  ? AppTextStyles.h3.copyWith(color: AppColors.primary)
-                  : AppTextStyles.bodyLarge,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: AppSizes.iconSm, color: AppColors.ink500),
+                  const SizedBox(width: 6),
+                ],
+                Flexible(
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.end,
+                    style: isBold
+                        ? AppTextStyles.h3.copyWith(color: AppColors.primary)
+                        : AppTextStyles.bodyLarge,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

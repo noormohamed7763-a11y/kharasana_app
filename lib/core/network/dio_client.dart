@@ -6,6 +6,9 @@ import '../utils/app_logger.dart';
 
 class DioClient {
   DioClient(this._secureStorage) {
+    // ============================================================
+    // ✅ استخدام الرابط المتغير (getter) بدلاً من الثابت
+    // ============================================================
     _dio = Dio(
       BaseOptions(
         baseUrl: AppConstants.baseUrlDev,
@@ -52,6 +55,7 @@ class DioClient {
   Dio get dio => _dio;
 }
 
+/// ✅ دالة محسّنة لمعالجة أخطاء Dio
 Failure mapDioError(DioException e) {
   switch (e.type) {
     case DioExceptionType.connectionTimeout:
@@ -62,23 +66,38 @@ Failure mapDioError(DioException e) {
       return const NetworkFailure();
     case DioExceptionType.badResponse:
       final status = e.response?.statusCode;
+      final data = e.response?.data as Map<String, dynamic>?;
+
       switch (status) {
+        case 400:
+          // ✅ معالجة أخطاء التحقق (Validation)
+          if (data != null) {
+            final message = _extractMessage(data);
+            final fieldErrors = _extractFieldErrors(data);
+            if (fieldErrors != null && fieldErrors.isNotEmpty) {
+              // عرض أخطاء الحقول بشكل مفصل
+              final errorsList = fieldErrors.values.expand((e) => e).join('\n');
+              return ValidationFailure(errorsList, fieldErrors: fieldErrors);
+            }
+            if (message != null) {
+              return ValidationFailure(message);
+            }
+          }
+          return ValidationFailure('البيانات المدخلة غير صحيحة.');
+
         case 401:
           return const UnauthorizedFailure();
         case 403:
           return const ForbiddenFailure();
         case 404:
           return const NotFoundFailure();
-        case 400:
-        case 422:
-          return ValidationFailure(
-            _extractMessage(e.response?.data) ?? 'البيانات المدخلة غير صحيحة.',
-            fieldErrors: _extractFieldErrors(e.response?.data),
-          );
+        case 409:
+          return ValidationFailure('البريد الإلكتروني أو رقم الهاتف مسجل بالفعل.');
         case 500:
         default:
           return const ServerFailure();
       }
+
     case DioExceptionType.cancel:
       return const UnknownFailure();
     default:
@@ -86,6 +105,7 @@ Failure mapDioError(DioException e) {
   }
 }
 
+/// ✅ استخراج رسالة الخطأ من الاستجابة
 String? _extractMessage(dynamic data) {
   if (data is Map<String, dynamic>) {
     return data['message']?.toString() ?? data['title']?.toString();
@@ -93,15 +113,7 @@ String? _extractMessage(dynamic data) {
   return null;
 }
 
-/// يُستخدم في `catch` الأخير داخل المستودعات (repositories) بدلاً من إرجاع
-/// `UnknownFailure` صامتة. غالباً يكون السبب `TypeError` من `fromJson`
-/// عندما يُرجع الخادم حقلاً بقيمة `null` أو بنوع مختلف عمّا يتوقعه الـ DTO.
-Failure mapUnexpectedError(Object error, StackTrace stackTrace) {
-  AppLogger.error('DataLayer', error, stackTrace, 'خطأ غير متوقع في طبقة البيانات');
-  if (error is TypeError) return ParseFailure(error);
-  return const UnknownFailure();
-}
-
+/// ✅ استخراج أخطاء الحقول من الاستجابة
 Map<String, List<String>>? _extractFieldErrors(dynamic data) {
   if (data is Map<String, dynamic> && data['errors'] is Map) {
     final raw = data['errors'] as Map;
@@ -113,4 +125,13 @@ Map<String, List<String>>? _extractFieldErrors(dynamic data) {
     );
   }
   return null;
+}
+
+/// ✅ معالجة الأخطاء غير المتوقعة (مثل أخطاء التحويل من JSON)
+Failure mapUnexpectedError(Object error, StackTrace stackTrace) {
+  AppLogger.error('DataLayer', error, stackTrace, 'خطأ غير متوقع في طبقة البيانات');
+  if (error is TypeError) {
+    return const ParseFailure('خطأ في قراءة البيانات من الخادم.');
+  }
+  return const UnknownFailure();
 }

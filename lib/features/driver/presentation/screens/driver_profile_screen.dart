@@ -17,7 +17,7 @@ class DriverProfileScreen extends ConsumerWidget {
     final storage = ref.read(secureStorageProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF7F2),
+      backgroundColor: AppColors.surfaceAlt,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -25,13 +25,13 @@ class DriverProfileScreen extends ConsumerWidget {
         title: const Text(
           'ملفي الشخصي',
           style: TextStyle(
-            color: Color(0xFF9E4A06),
+            color: AppColors.brand700,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF5A4A42)),
+          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink700),
           onPressed: () {},
         ),
       ),
@@ -60,15 +60,15 @@ class DriverProfileScreen extends ConsumerWidget {
                         width: 90,
                         height: 90,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF9EDE2),
+                          color: AppColors.surfaceSunken,
                           shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFFE65100), width: 2.5),
+                          border: Border.all(color: AppColors.brand500, width: 2.5),
                         ),
                         child: const Center(
                           child: Icon(
                             Icons.local_shipping_rounded,
                             size: 46,
-                            color: Color(0xFFE65100),
+                            color: AppColors.brand500,
                           ),
                         ),
                       ),
@@ -78,20 +78,20 @@ class DriverProfileScreen extends ConsumerWidget {
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF2C221E),
+                          color: AppColors.ink900,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
+                          color: AppColors.successBg,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Text(
                           'سائق شاحنة خرسانة معتمد',
                           style: TextStyle(
-                            color: Color(0xFF2E7D32),
+                            color: AppColors.success,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -105,12 +105,12 @@ class DriverProfileScreen extends ConsumerWidget {
                 // 2. Factory Workplace Information Card
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFEFE5DC)),
+                    border: Border.all(color: AppColors.border),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
+                        color: AppColors.shadow.withValues(alpha: 0.02),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -122,20 +122,20 @@ class DriverProfileScreen extends ConsumerWidget {
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.factory_rounded, color: Color(0xFF8A3C04), size: 20),
+                          Icon(Icons.factory_rounded, color: AppColors.brand800, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'المصنع وبيانات العمل',
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2C221E),
+                              color: AppColors.ink900,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      const Divider(height: 1, color: Color(0xFFF0E5DC)),
+                      const Divider(height: 1, color: AppColors.border),
                       const SizedBox(height: 10),
                       _ProfileRow(label: 'المصنع التابع له', value: factoryName),
                       if (user.userId != null) ...[
@@ -152,12 +152,12 @@ class DriverProfileScreen extends ConsumerWidget {
                 // 3. Driver Responsibilities & Capabilities Overview
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFEFE5DC)),
+                    border: Border.all(color: AppColors.border),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
+                        color: AppColors.shadow.withValues(alpha: 0.02),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -169,20 +169,20 @@ class DriverProfileScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.task_alt_rounded, color: Color(0xFF8A3C04), size: 20),
+                          Icon(Icons.task_alt_rounded, color: AppColors.brand800, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'صلاحيات ومهام السائق في المنصة',
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2C221E),
+                              color: AppColors.ink900,
                             ),
                           ),
                         ],
                       ),
                       SizedBox(height: 10),
-                      Divider(height: 1, color: Color(0xFFF0E5DC)),
+                      Divider(height: 1, color: AppColors.border),
                       SizedBox(height: 12),
                       _CapabilityItem(
                         icon: Icons.check_circle_outline_rounded,
@@ -223,7 +223,7 @@ class DriverProfileScreen extends ConsumerWidget {
                       style: TextStyle(
                         color: AppColors.error,
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontSize: 16,
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -257,14 +257,14 @@ class _ProfileRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 13, color: Color(0xFF7A685E)),
+          style: const TextStyle(fontSize: 14, color: AppColors.ink500),
         ),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 13.5,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2C221E),
+            color: AppColors.ink900,
           ),
         ),
       ],
@@ -283,12 +283,12 @@ class _CapabilityItem extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: const Color(0xFF2E7D32)),
+        Icon(icon, size: 18, color: AppColors.success),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 12.5, color: Color(0xFF5A4A42), height: 1.35),
+            style: const TextStyle(fontSize: 12, color: AppColors.ink700, height: 1.35),
           ),
         ),
       ],

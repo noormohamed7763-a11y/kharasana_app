@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
   const OrderSuccessScreen({
@@ -23,7 +24,7 @@ class OrderSuccessScreen extends StatelessWidget {
     final dateStr = pouringDate != null ? dateFormat.format(pouringDate!) : 'اليوم';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF7F2),
+      backgroundColor: AppColors.surfaceAlt,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -38,11 +39,11 @@ class OrderSuccessScreen extends StatelessWidget {
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD7EEF7),
+                    color: AppColors.infoBorder,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0288D1).withValues(alpha: 0.15),
+                        color: AppColors.info.withValues(alpha: 0.15),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -51,7 +52,7 @@ class OrderSuccessScreen extends StatelessWidget {
                   child: const Center(
                     child: Icon(
                       Icons.check_circle_rounded,
-                      color: Color(0xFF0288D1),
+                      color: AppColors.info,
                       size: 52,
                     ),
                   ),
@@ -64,9 +65,9 @@ class OrderSuccessScreen extends StatelessWidget {
                 'تم إرسال الطلب بنجاح',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF2C221E),
+                  color: AppColors.ink900,
                 ),
               ),
               const SizedBox(height: 6),
@@ -74,8 +75,8 @@ class OrderSuccessScreen extends StatelessWidget {
                 'شكراً لثقتك بنا، سنقوم بمعالجة طلبك قريباً',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 13.5,
-                  color: Color(0xFF7A685E),
+                  fontSize: 14,
+                  color: AppColors.ink500,
                 ),
               ),
               const SizedBox(height: 28),
@@ -83,12 +84,12 @@ class OrderSuccessScreen extends StatelessWidget {
               // 3. Order Summary Card
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFEFE5DC)),
+                  border: Border.all(color: AppColors.border),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: AppColors.shadow.withValues(alpha: 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -106,28 +107,31 @@ class OrderSuccessScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF8A3C04),
+                            color: AppColors.brand800,
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFF0E0),
+                            color: AppColors.brand50,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Text(
                             'قيد المراجعة',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFE65100),
+                              // brand500 على brand50 = 3.39:1، وهذا نصّ ١٢px
+                              // لا يُعدّ كبيراً فيلزمه 4.5:1. primary = 4.63:1
+                              // ويبقى مميّزاً عن عنوان القسم بجواره (brand800).
+                              color: AppColors.primary,
                             ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    const Divider(height: 1, color: Color(0xFFF0E5DC)),
+                    const Divider(height: 1, color: AppColors.border),
                     const SizedBox(height: 14),
 
                     // Info Rows
@@ -150,8 +154,8 @@ class OrderSuccessScreen extends StatelessWidget {
                   height: 90,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEFE7DE),
-                    border: Border.all(color: const Color(0xFFE5D7CC)),
+                    color: AppColors.border,
+                    border: Border.all(color: AppColors.borderWarm),
                   ),
                   child: Stack(
                     alignment: Alignment.center,
@@ -168,18 +172,18 @@ class OrderSuccessScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.white,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
+                              color: AppColors.shadow.withValues(alpha: 0.1),
                               blurRadius: 8,
                             ),
                           ],
                         ),
                         child: const Icon(
                           Icons.location_on_rounded,
-                          color: Color(0xFF8A3C04),
+                          color: AppColors.brand800,
                           size: 24,
                         ),
                       ),
@@ -197,11 +201,11 @@ class OrderSuccessScreen extends StatelessWidget {
                   icon: const Icon(Icons.home_rounded, size: 20),
                   label: const Text(
                     'العودة للرئيسية',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE65100),
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -217,14 +221,14 @@ class OrderSuccessScreen extends StatelessWidget {
                   label: const Text(
                     'عرض تفاصيل الطلب',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C221E),
+                      color: AppColors.ink900,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFD4C2B4)),
-                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: AppColors.borderStrong),
+                    backgroundColor: AppColors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -240,8 +244,8 @@ class OrderSuccessScreen extends StatelessWidget {
                     Text(
                       'KHORSANA • النظام الذكي لخدمات الخرسانة الجاهزة',
                       style: TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFFA08E84),
+                        fontSize: 12,
+                        color: AppColors.ink200,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -272,22 +276,22 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: const Color(0xFF8A3C04)),
+        Icon(icon, size: 18, color: AppColors.brand800),
         const SizedBox(width: 8),
         Text(
           label,
           style: const TextStyle(
-            fontSize: 13,
-            color: Color(0xFF7A685E),
+            fontSize: 14,
+            color: AppColors.ink500,
           ),
         ),
         const Spacer(),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 13.5,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2C221E),
+            color: AppColors.ink900,
           ),
         ),
       ],

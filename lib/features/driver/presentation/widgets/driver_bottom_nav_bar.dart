@@ -16,10 +16,10 @@ class DriverBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFAF2EB),
+        color: AppColors.surfaceSubtle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppColors.shadow.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
@@ -73,11 +73,12 @@ class _NavItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFFE65100),
+            // primary لا brand500: الأخير مع نص أبيض 3.79:1، دون حدّ AA.
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFE65100).withValues(alpha: 0.3),
+                color: AppColors.primary.withValues(alpha: 0.3),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -86,13 +87,13 @@ class _NavItem extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: Colors.white, size: 22),
+              Icon(icon, color: AppColors.textOnPrimary, size: 22),
               const SizedBox(height: 2),
               Text(
                 label,
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
+                  color: AppColors.textOnPrimary,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -116,7 +117,7 @@ class _NavItem extends StatelessWidget {
               label,
               style: const TextStyle(
                 color: AppColors.textSecondary,
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
             ),

@@ -10,6 +10,8 @@ import '../../../../core/widgets/status_badge.dart';
 import '../../../orders/data/models/order_summary_dto.dart';
 import '../providers/driver_providers.dart';
 import '../widgets/driver_bottom_nav_bar.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_format.dart';
 
 class DriverHomeScreen extends ConsumerWidget {
   const DriverHomeScreen({super.key});
@@ -21,7 +23,7 @@ class DriverHomeScreen extends ConsumerWidget {
     final storage = ref.read(secureStorageProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF7F2),
+      backgroundColor: AppColors.surfaceAlt,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -29,13 +31,13 @@ class DriverHomeScreen extends ConsumerWidget {
         title: const Text(
           'لوحة تحكم السائق',
           style: TextStyle(
-            color: Color(0xFF9E4A06),
+            color: AppColors.brand700,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF5A4A42)),
+          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink700),
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('لا توجد تنبيهات جديدة')),
@@ -44,7 +46,7 @@ class DriverHomeScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Color(0xFF9E4A06)),
+            icon: const Icon(Icons.logout_rounded, color: AppColors.brand700),
             tooltip: 'تسجيل الخروج',
             onPressed: () async {
               await storage.clearSession();
@@ -94,7 +96,7 @@ class DriverHomeScreen extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2C221E),
+                color: AppColors.ink900,
               ),
             ),
             const SizedBox(height: 12),
@@ -105,7 +107,7 @@ class DriverHomeScreen extends ConsumerWidget {
                     icon: Icons.local_shipping_rounded,
                     title: 'بدء التوصيل',
                     subtitle: 'تحويل الشحنة إلى (في الطريق)',
-                    accentColor: Color(0xFFE65100),
+                    accentColor: AppColors.brand500,
                   ),
                 ),
                 SizedBox(width: 10),
@@ -114,7 +116,7 @@ class DriverHomeScreen extends ConsumerWidget {
                     icon: Icons.phone_in_talk_rounded,
                     title: 'الاتصال بالعميل',
                     subtitle: 'تنسيق وتحديد موقع الصب',
-                    accentColor: Color(0xFF0288D1),
+                    accentColor: AppColors.info,
                   ),
                 ),
                 SizedBox(width: 10),
@@ -123,7 +125,7 @@ class DriverHomeScreen extends ConsumerWidget {
                     icon: Icons.check_circle_rounded,
                     title: 'تأكيد التسليم',
                     subtitle: 'إتمام تفريغ الشحنة بنجاح',
-                    accentColor: Color(0xFF2E7D32),
+                    accentColor: AppColors.success,
                   ),
                 ),
               ],
@@ -139,14 +141,14 @@ class DriverHomeScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C221E),
+                    color: AppColors.ink900,
                   ),
                 ),
                 ordersAsync.maybeWhen(
                   data: (orders) => Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF9EDE2),
+                      color: AppColors.surfaceSunken,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -154,7 +156,7 @@ class DriverHomeScreen extends ConsumerWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF8A3C04),
+                        color: AppColors.brand800,
                       ),
                     ),
                   ),
@@ -182,27 +184,27 @@ class DriverHomeScreen extends ConsumerWidget {
                   return Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.white,
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFEFE5DC)),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: const Column(
                       children: [
-                        Icon(Icons.local_shipping_outlined, size: 48, color: Color(0xFFB0A096)),
+                        Icon(Icons.local_shipping_outlined, size: 48, color: AppColors.ink200),
                         SizedBox(height: 12),
                         Text(
                           'لا توجد طلبات توصيل مسندة حالياً',
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C221E),
+                            color: AppColors.ink900,
                           ),
                         ),
                         SizedBox(height: 4),
                         Text(
                           'ستظهر هنا أي شحنة جديدة يتم إسنادها إليك من المصنع فوراً.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12.5, color: Color(0xFF8C7A70)),
+                          style: TextStyle(fontSize: 12, color: AppColors.ink500),
                         ),
                       ],
                     ),
@@ -257,8 +259,11 @@ class _DriverHeader extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFFFF7A00),
-            Color(0xFFE65100),
+            // نفس السبب في بطاقة رئيسية العميل: التدرّج يحمل اسم السائق
+            // وتحيّته بالأبيض، وbrand400 يعطي 2.82:1 — يفشل حتى حدّ النص
+            // الكبير 3:1.
+            AppColors.brand600,
+            AppColors.brand800,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -266,7 +271,7 @@ class _DriverHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFE65100).withValues(alpha: 0.25),
+            color: AppColors.primary.withValues(alpha: 0.25),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -282,13 +287,13 @@ class _DriverHeader extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: AppColors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Center(
                   child: Icon(
                     Icons.local_shipping_rounded,
-                    color: Colors.white,
+                    color: AppColors.white,
                     size: 30,
                   ),
                 ),
@@ -301,17 +306,20 @@ class _DriverHeader extends StatelessWidget {
                     const Text(
                       'أهلاً بك، كابتن',
                       style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white70,
+                        fontSize: 14,
+                        // معتم لا white70: الشفافية 0.70 فوق brand600 تعطي
+                        // 3.29:1. التمييز عن الاسم يأتي من الحجم والوزن
+                        // (14/w500 مقابل 22/w800) لا من الشفافية.
+                        color: AppColors.white,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
                       driverName,
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        color: AppColors.white,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -322,21 +330,21 @@ class _DriverHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: Colors.white24),
+          Divider(height: 1, color: AppColors.white.withValues(alpha: 0.24)),
           const SizedBox(height: 12),
 
           // Factory badge
           Row(
             children: [
-              const Icon(Icons.factory_rounded, color: Colors.white, size: 18),
+              const Icon(Icons.factory_rounded, color: AppColors.white, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'المصنع التابع له: $factoryName',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: 14,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -368,12 +376,12 @@ class _CapabilityCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEFE5DC)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: AppColors.shadow.withValues(alpha: 0.02),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -396,7 +404,7 @@ class _CapabilityCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2C221E),
+              color: AppColors.ink900,
             ),
           ),
           const SizedBox(height: 3),
@@ -404,8 +412,8 @@ class _CapabilityCard extends StatelessWidget {
             subtitle,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 10,
-              color: Color(0xFF8C7A70),
+              fontSize: 12,
+              color: AppColors.ink500,
               height: 1.25,
             ),
             maxLines: 2,
@@ -430,12 +438,12 @@ class _DriverOrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEFE5DC)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: AppColors.shadow.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -451,9 +459,9 @@ class _DriverOrderCard extends StatelessWidget {
               Text(
                 'طلب رقم #${order.orderNumber}',
                 style: const TextStyle(
-                  fontSize: 14.5,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C221E),
+                  color: AppColors.ink900,
                 ),
               ),
               StatusBadge(status: order.status),
@@ -461,23 +469,23 @@ class _DriverOrderCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${order.concreteTypeName} · ${order.quantity.toStringAsFixed(0)} م³',
+            '${order.concreteTypeName} · ${AppFormat.cubicMetres(order.quantity)}',
             style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF7A685E),
+              fontSize: 14,
+              color: AppColors.ink500,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFF0E5DC)),
+          const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: 12),
           SizedBox(
             height: 42,
             child: ElevatedButton(
               onPressed: onTap,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE65100),
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -489,7 +497,7 @@ class _DriverOrderCard extends StatelessWidget {
                   Text(
                     'عرض تفاصيل التوصيل',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

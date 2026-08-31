@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../factories/data/models/factory_dto.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class FactoryCard extends StatelessWidget {
   const FactoryCard({super.key, required this.factory, this.onTap});
@@ -11,12 +12,12 @@ class FactoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEFE5DC)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: AppColors.shadow.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -39,15 +40,15 @@ class FactoryCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                       decoration: BoxDecoration(
-                        color: factory.isActive ? const Color(0xFFE8F5E9) : const Color(0xFFF5F5F5),
+                        color: factory.isActive ? AppColors.successBg : AppColors.surfaceAlt,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         factory.isActive ? 'نشط' : 'غير نشط',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: factory.isActive ? const Color(0xFF2E7D32) : const Color(0xFF757575),
+                          color: factory.isActive ? AppColors.success : AppColors.ink500,
                         ),
                       ),
                     ),
@@ -57,7 +58,7 @@ class FactoryCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C221E),
+                        color: AppColors.ink900,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -67,8 +68,8 @@ class FactoryCard extends StatelessWidget {
                       Text(
                         'المالك: ${factory.ownerName}',
                         style: const TextStyle(
-                          fontSize: 12.5,
-                          color: Color(0xFF7A685E),
+                          fontSize: 12,
+                          color: AppColors.ink500,
                         ),
                       ),
                     ],
@@ -83,14 +84,14 @@ class FactoryCard extends StatelessWidget {
                 width: 54,
                 height: 54,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF9EDE2),
+                  color: AppColors.surfaceSunken,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFEEDCD0)),
+                  border: Border.all(color: AppColors.borderWarm),
                 ),
                 child: const Center(
                   child: Icon(
                     Icons.factory_rounded,
-                    color: Color(0xFF8A3C04),
+                    color: AppColors.brand800,
                     size: 28,
                   ),
                 ),
@@ -99,19 +100,19 @@ class FactoryCard extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFF0E5DC)),
+          const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: 12),
 
           // Location & Phone
           Row(
             children: [
               if (factory.area != null || factory.address != null) ...[
-                const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFF8C7A70)),
+                const Icon(Icons.location_on_outlined, size: 16, color: AppColors.ink300),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     factory.area ?? factory.address ?? '',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF7A685E)),
+                    style: const TextStyle(fontSize: 12, color: AppColors.ink500),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -119,14 +120,14 @@ class FactoryCard extends StatelessWidget {
               ],
               if (factory.phone != null) ...[
                 const SizedBox(width: 12),
-                const Icon(Icons.phone_outlined, size: 16, color: Color(0xFF8C7A70)),
+                const Icon(Icons.phone_outlined, size: 16, color: AppColors.ink300),
                 const SizedBox(width: 4),
                 Text(
                   factory.phone!,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF7A685E),
+                    color: AppColors.ink500,
                   ),
                 ),
               ],
@@ -141,8 +142,8 @@ class FactoryCard extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onTap,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE65100),
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -154,7 +155,7 @@ class FactoryCard extends StatelessWidget {
                   Text(
                     'عرض التفاصيل',
                     style: TextStyle(
-                      fontSize: 13.5,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
