@@ -42,6 +42,29 @@ class OrderCreationController extends StateNotifier<OrderDraft> {
     state = updater(state);
   }
 
+  /// اختيار المصنع. يُصفّر نوع الخرسانة المختار لأن الأنواع تخصّ
+  /// مصنعاً واحداً — إبقاء نوع من مصنع سابق يُنتج طلباً غير صالح.
+  void selectFactory({required int factoryId, required String factoryName}) {
+    if (state.factoryId == factoryId) return;
+    state = state.copyWith(
+      factoryId: factoryId,
+      factoryName: factoryName,
+      clearConcreteType: true,
+    );
+  }
+
+  void selectConcreteType({
+    required int concreteTypeId,
+    required String name,
+    required double unitPrice,
+  }) {
+    state = state.copyWith(
+      concreteTypeId: concreteTypeId,
+      concreteTypeName: name,
+      concreteUnitPrice: unitPrice,
+    );
+  }
+
   Future<OrderSubmissionState> submit() async {
     if (!state.isReadyToSubmit) {
       return const SubmissionFailed('يرجى إكمال جميع البيانات المطلوبة.');

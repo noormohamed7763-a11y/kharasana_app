@@ -9,6 +9,7 @@ import '../../features/authentication/data/repositories/auth_repository_impl.dar
 import '../../features/authentication/domain/repositories/auth_repository.dart';
 import '../../features/factories/data/datasources/factories_remote_data_source.dart';
 import '../../features/concrete_types/data/datasources/concrete_types_remote_data_source.dart';
+import '../../features/concrete_types/data/models/concrete_type_dto.dart';
 import '../../features/orders/data/datasources/orders_remote_data_source.dart';
 import '../../features/orders/data/repositories/orders_repository_impl.dart';
 import '../../features/orders/domain/repositories/orders_repository.dart';
@@ -120,15 +121,13 @@ final concreteTypesListProvider = FutureProvider.autoDispose((ref) async {
   return types.where((t) => t.isActive).toList();
 });
 
-// ============================================================
-// 🔄 Refresh Providers (لتحديث البيانات)
-// ============================================================
-final refreshFactoriesProvider = FutureProvider.autoDispose((ref) async {
-  ref.invalidate(factoriesListProvider);
-  return await ref.watch(factoriesListProvider.future);
-});
-
-final refreshConcreteTypesProvider = FutureProvider.autoDispose((ref) async {
-  ref.invalidate(concreteTypesListProvider);
-  return await ref.watch(concreteTypesListProvider.future);
+/// أنواع الخرسانة التابعة لمصنع واحد.
+///
+/// الخادم لا يوفّر مساراً لأنواع مصنع بعينه (`/api/ConcreteTypes` تُرجع الكل)،
+/// فنُرشِّح القائمة محلياً بـ `factoryId`. عرض كل الأنواع للعميل يجعله يطلب
+/// نوعاً لا يوفّره المصنع المختار.
+final concreteTypesByFactoryProvider = FutureProvider.autoDispose
+    .family<List<ConcreteTypeDto>, int>((ref, factoryId) async {
+  final types = await ref.watch(concreteTypesListProvider.future);
+  return types.where((t) => t.factoryId == factoryId).toList();
 });

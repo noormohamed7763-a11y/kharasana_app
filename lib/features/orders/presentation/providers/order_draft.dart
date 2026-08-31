@@ -49,12 +49,20 @@ class OrderDraft {
     int? concreteTypeId,
     String? concreteTypeName,
     double? concreteUnitPrice,
+
+    /// يُصفّر نوع الخرسانة وسعره — يُستخدم عند تغيير المصنع،
+    /// لأن كل نوع خرسانة يخصّ مصنعاً واحداً بسعره الخاص.
+    bool clearConcreteType = false,
     String? projectName,
     String? projectOwnerName,
     String? siteArea,
     String? siteDescription,
     SlabType? slabType,
     double? quantity,
+
+    /// يُصفّر الكمية — لازم لأن `quantity ?? this.quantity` وحده
+    /// يُبقي القيمة القديمة عندما يمحو المستخدم الحقل.
+    bool clearQuantity = false,
     bool? needPump,
     int? floorNumber,
     bool clearFloorNumber = false,
@@ -65,15 +73,18 @@ class OrderDraft {
     return OrderDraft(
       factoryId: factoryId ?? this.factoryId,
       factoryName: factoryName ?? this.factoryName,
-      concreteTypeId: concreteTypeId ?? this.concreteTypeId,
-      concreteTypeName: concreteTypeName ?? this.concreteTypeName,
-      concreteUnitPrice: concreteUnitPrice ?? this.concreteUnitPrice,
+      concreteTypeId:
+          clearConcreteType ? null : (concreteTypeId ?? this.concreteTypeId),
+      concreteTypeName:
+          clearConcreteType ? null : (concreteTypeName ?? this.concreteTypeName),
+      concreteUnitPrice:
+          clearConcreteType ? null : (concreteUnitPrice ?? this.concreteUnitPrice),
       projectName: projectName ?? this.projectName,
       projectOwnerName: projectOwnerName ?? this.projectOwnerName,
       siteArea: siteArea ?? this.siteArea,
       siteDescription: siteDescription ?? this.siteDescription,
       slabType: slabType ?? this.slabType,
-      quantity: quantity ?? this.quantity,
+      quantity: clearQuantity ? null : (quantity ?? this.quantity),
       needPump: needPump ?? this.needPump,
       floorNumber: clearFloorNumber ? null : (floorNumber ?? this.floorNumber),
       pouringDate: pouringDate ?? this.pouringDate,
