@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../concrete_types/data/models/concrete_type_dto.dart';
+import '../../../../core/utils/app_format.dart';
 
 class ConcreteTypeCard extends StatelessWidget {
   const ConcreteTypeCard({super.key, required this.concreteType});
@@ -68,7 +68,7 @@ class ConcreteTypeCard extends StatelessWidget {
                   style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
                 Text(
-                  '${concreteType.unitPrice.toStringAsFixed(0)} ${AppConstants.currencySymbol}',
+                  AppFormat.money(concreteType.unitPrice),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

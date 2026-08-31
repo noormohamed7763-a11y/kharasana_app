@@ -47,10 +47,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.15),
-                    Colors.black.withValues(alpha: 0.35),
-                    Colors.black.withValues(alpha: 0.75),
-                    Colors.black.withValues(alpha: 0.94),
+                    AppColors.shadow.withValues(alpha: 0.15),
+                    AppColors.shadow.withValues(alpha: 0.35),
+                    AppColors.shadow.withValues(alpha: 0.75),
+                    AppColors.shadow.withValues(alpha: 0.94),
                   ],
                   stops: const [0.0, 0.45, 0.72, 1.0],
                 ),
@@ -74,11 +74,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF9E4A06),
+                        color: AppColors.brand700,
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.35),
+                            color: AppColors.shadow.withValues(alpha: 0.35),
                             blurRadius: 14,
                             offset: const Offset(0, 6),
                           ),
@@ -87,7 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: const Center(
                         child: Icon(
                           Icons.architecture_rounded,
-                          color: Colors.white,
+                          color: AppColors.white,
                           size: 34,
                         ),
                       ),
@@ -100,9 +100,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const Text(
                     'مرحباً بك في خرسانة',
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 32,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppColors.white,
                       letterSpacing: -0.5,
                       height: 1.2,
                     ),
@@ -114,9 +114,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Text(
                     'أسهل طريقة لطلب الخرسانة الجاهزة في\nاليمن بكل موثوقية واحترافية.',
                     style: TextStyle(
-                      fontSize: 14.5,
+                      fontSize: 14,
                       fontWeight: FontWeight.w400,
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: AppColors.white.withValues(alpha: 0.85),
                       height: 1.6,
                     ),
                   ),
@@ -128,8 +128,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     height: 54,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF9E4A06),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.brand700,
+                        foregroundColor: AppColors.white,
                         elevation: 4,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -160,10 +160,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     height: 54,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.12),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.white.withValues(alpha: 0.12),
+                        foregroundColor: AppColors.white,
                         side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.3),
+                          color: AppColors.white.withValues(alpha: 0.3),
                           width: 1.2,
                         ),
                         shape: RoundedRectangleBorder(
@@ -195,8 +195,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     'بالاستمرار، أنت توافق على الشروط والأحكام الخاصة بنا',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 11.5,
-                      color: Colors.white.withValues(alpha: 0.6),
+                      fontSize: 12,
+                      color: AppColors.white.withValues(alpha: 0.6),
                     ),
                   ),
 
@@ -301,7 +301,7 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
                 width: 44,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColors.borderStrong,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -330,7 +330,7 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
                     Text(
                       'تسجيل الدخول',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
@@ -339,7 +339,7 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
                     Text(
                       'أدخل بيانات حسابك للمتابعة',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         color: AppColors.textSecondary,
                       ),
                     ),
@@ -362,7 +362,7 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('كلمة المرور', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                const Text('كلمة المرور', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                 const SizedBox(height: 6),
                 TextFormField(
                   controller: _passCtrl,
@@ -406,4 +406,4 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
       ),
     );
   }
-}
+}

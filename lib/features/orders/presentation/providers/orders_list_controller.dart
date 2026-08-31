@@ -76,7 +76,7 @@ class OrdersListController extends StateNotifier<OrdersListState> {
         state = OrdersListError(failure.messageAr);
     }
     } catch (e) {
-      state = OrdersListError('حدث خطأ أثناء تحميل الطلبات');
+      state = const OrdersListError('حدث خطأ أثناء تحميل الطلبات');
     }
   }
 

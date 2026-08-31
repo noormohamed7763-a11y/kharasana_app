@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/providers/core_providers.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/utils/api_enums.dart';
-import '../../../client/presentation/widgets/client_bottom_nav_bar.dart';
+import '../../../../core/utils/app_format.dart';
 import '../providers/order_creation_controller.dart';
 import 'order_success_screen.dart';
-
-final _money = NumberFormat('#,##0', 'en_US');
-final _qty = NumberFormat('#,##0.##', 'en_US');
 
 class CreateOrderScreen extends ConsumerStatefulWidget {
   const CreateOrderScreen({super.key, this.initialFactoryId});
@@ -54,8 +52,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFFE65100),
-              onPrimary: Colors.white,
+              primary: AppColors.primary,
+              onPrimary: AppColors.white,
             ),
           ),
           child: child!,
@@ -121,7 +119,17 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         );
       case SubmissionFailed(message: final message):
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ $message')),
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline_rounded,
+                    color: AppColors.textOnPrimary, size: AppSizes.iconSm),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(child: Text(message)),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+          ),
         );
       case SubmissionInProgress():
       case SubmissionIdle():
@@ -136,7 +144,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     final controller = ref.read(orderCreationControllerProvider(widget.initialFactoryId).notifier);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF7F2),
+      backgroundColor: AppColors.surfaceAlt,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -144,23 +152,26 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         title: const Text(
           'طلب خرسانة جديد',
           style: TextStyle(
-            color: Color(0xFF9E4A06),
+            color: AppColors.brand700,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF5A4A42)),
+          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink700),
           onPressed: () {},
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Color(0xFF9E4A06)),
+            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.brand700),
             onPressed: () => context.pop(),
           ),
         ],
       ),
-      bottomNavigationBar: const ClientBottomNavBar(currentIndex: 0),
+      // لا شريط تنقّل سفلي هنا عن قصد: هذه شاشة نموذج مدفوعة على المكدّس،
+      // وليست إحدى وجهات التنقّل الثلاث. كان الشريط موجوداً بـ currentIndex: 0
+      // فيُضيء "الرئيسية" بينما المستخدم في منتصف طلبه، ولمسة واحدة على أي
+      // زر تستدعي context.go فتُبدّل المكدّس وتُتلف المسوّدة بلا إنذار.
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
@@ -173,7 +184,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: AppColors.shadow.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -196,8 +207,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.black.withValues(alpha: 0.25),
-                              Colors.black.withValues(alpha: 0.75),
+                              AppColors.shadow.withValues(alpha: 0.25),
+                              AppColors.shadow.withValues(alpha: 0.75),
                             ],
                           ),
                         ),
@@ -212,8 +223,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                           const Text(
                             'بيانات الطلب',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
+                              color: AppColors.white,
+                              fontSize: 22,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -221,8 +232,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                           Text(
                             'أدخل تفاصيل الصبة والكميات المطلوبة بدقة',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.88),
-                              fontSize: 12.5,
+                              color: AppColors.white.withValues(alpha: 0.88),
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -237,12 +248,12 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
             // 2. Form Container Card
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFEFE5DC)),
+                border: Border.all(color: AppColors.border),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
+                    color: AppColors.shadow.withValues(alpha: 0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -261,7 +272,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       items: factories
                           .map((f) => DropdownMenuItem(
                                 value: f.factoryId,
-                                child: Text(f.factoryName, style: const TextStyle(fontSize: 13.5)),
+                                child: Text(f.factoryName, style: const TextStyle(fontSize: 14)),
                               ))
                           .toList(),
                       onChanged: (val) {
@@ -318,8 +329,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                                         value: t.concreteTypeId,
                                         child: Text(
                                           '${t.name} · قوة ${t.strength} · '
-                                          '${_money.format(t.unitPrice)} ${AppConstants.currencySymbol}/م³',
-                                          style: const TextStyle(fontSize: 13.5),
+                                          '${AppFormat.pricePerCubicMetre(t.unitPrice)}',
+                                          style: const TextStyle(fontSize: 14),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -440,7 +451,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                                   .map((s) => DropdownMenuItem(
                                         value: s,
                                         child: Text(s.arabicLabel,
-                                            style: const TextStyle(fontSize: 13.5)),
+                                            style: const TextStyle(fontSize: 14)),
                                       ))
                                   .toList(),
                               onChanged: (val) {
@@ -477,27 +488,27 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF9EDE2),
+                      color: AppColors.surfaceSunken,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFEEDCD0)),
+                      border: Border.all(color: AppColors.borderWarm),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.local_shipping_outlined, color: Color(0xFF8A3C04), size: 22),
+                        const Icon(Icons.local_shipping_outlined, color: AppColors.brand800, size: 22),
                         const SizedBox(width: 10),
                         const Expanded(
                           child: Text(
                             'هل تحتاج مضخة؟',
                             style: TextStyle(
-                              fontSize: 13.5,
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2C221E),
+                              color: AppColors.ink900,
                             ),
                           ),
                         ),
                         Switch(
                           value: draft.needPump,
-                          activeThumbColor: const Color(0xFFE65100),
+                          activeThumbColor: AppColors.brand500,
                           onChanged: (val) =>
                               controller.updateDraft((d) => d.copyWith(needPump: val)),
                         ),
@@ -514,24 +525,24 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFAF4EE),
+                        color: AppColors.surfaceSubtle,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFEFE5DC)),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Row(
                         children: [
                           const Icon(Icons.calendar_today_outlined,
-                              size: 18, color: Color(0xFF8C7A70)),
+                              size: 18, color: AppColors.ink300),
                           const SizedBox(width: 10),
                           Text(
                             _selectedDate != null
                                 ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
                                 : 'اختر تاريخ الصب (mm/dd/yyyy)',
                             style: TextStyle(
-                              fontSize: 13.5,
+                              fontSize: 14,
                               color: _selectedDate != null
-                                  ? const Color(0xFF2C221E)
-                                  : const Color(0xFF8C7A70),
+                                  ? AppColors.ink900
+                                  : AppColors.ink500,
                             ),
                           ),
                         ],
@@ -557,8 +568,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     child: ElevatedButton(
                       onPressed: _isSubmitting ? null : _submitOrder,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8A3C04),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.brand800,
+                        foregroundColor: AppColors.white,
                         elevation: 2,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -568,7 +579,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              child: CircularProgressIndicator(color: AppColors.white, strokeWidth: 2),
                             )
                           : const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -613,14 +624,14 @@ class _InlineNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = isError ? const Color(0xFFA33A20) : const Color(0xFF8C7A70);
+    final fg = isError ? AppColors.brand800 : AppColors.ink300;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isError ? const Color(0xFFFCEDE8) : const Color(0xFFFAF4EE),
+        color: isError ? AppColors.surfaceSoftPink : AppColors.surfaceSubtle,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isError ? const Color(0xFFF2CFC4) : const Color(0xFFEFE5DC),
+          color: isError ? AppColors.borderError : AppColors.border,
         ),
       ),
       child: Row(
@@ -630,7 +641,7 @@ class _InlineNotice extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: 12.5, color: fg, height: 1.5),
+              style: TextStyle(fontSize: 12, color: fg, height: 1.5),
             ),
           ),
         ],
@@ -659,23 +670,23 @@ class _PriceSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9EDE2),
+        color: AppColors.surfaceSunken,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEEDCD0)),
+        border: Border.all(color: AppColors.borderWarm),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Row(
             children: [
-              Icon(Icons.receipt_long_rounded, size: 18, color: Color(0xFF8A3C04)),
+              Icon(Icons.receipt_long_rounded, size: 18, color: AppColors.brand800),
               SizedBox(width: 8),
               Text(
                 'تقدير التكلفة',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C221E),
+                  color: AppColors.ink900,
                 ),
               ),
             ],
@@ -683,13 +694,13 @@ class _PriceSummaryCard extends StatelessWidget {
           const SizedBox(height: 12),
           _row(
             'سعر المتر المكعب',
-            '${_money.format(unitPrice)} ${AppConstants.currencySymbol}',
+            AppFormat.money(unitPrice),
           ),
           const SizedBox(height: 6),
-          _row('الكمية', qty != null ? '${_qty.format(qty)} م³' : '—'),
+          _row('الكمية', qty != null ? AppFormat.cubicMetres(qty) : '—'),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
-            child: Divider(height: 1, color: Color(0xFFE5CFBD)),
+            child: Divider(height: 1, color: AppColors.borderAccent),
           ),
           if (sum != null)
             Row(
@@ -698,17 +709,17 @@ class _PriceSummaryCard extends StatelessWidget {
                 const Text(
                   'الإجمالي التقديري',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C221E),
+                    color: AppColors.ink900,
                   ),
                 ),
                 Text(
-                  '${_money.format(sum)} ${AppConstants.currencySymbol}',
+                  AppFormat.money(sum),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF8A3C04),
+                    color: AppColors.brand800,
                   ),
                 ),
               ],
@@ -716,12 +727,12 @@ class _PriceSummaryCard extends StatelessWidget {
           else
             const Text(
               'أدخل الكمية (م³) ليُحسب الإجمالي',
-              style: TextStyle(fontSize: 12, color: Color(0xFF8C7A70)),
+              style: TextStyle(fontSize: 12, color: AppColors.ink500),
             ),
           const SizedBox(height: 8),
           const Text(
             'تقدير مبني على سعر المصنع المعلن. يعتمد المصنع السعر النهائي بعد مراجعة الطلب.',
-            style: TextStyle(fontSize: 11, color: Color(0xFF8C7A70), height: 1.5),
+            style: TextStyle(fontSize: 12, color: AppColors.ink500, height: 1.5),
           ),
         ],
       ),
@@ -734,14 +745,14 @@ class _PriceSummaryCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 12.5, color: Color(0xFF5A4A42)),
+          style: const TextStyle(fontSize: 12, color: AppColors.ink700),
         ),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF2C221E),
+            color: AppColors.ink900,
           ),
         ),
       ],
@@ -760,9 +771,9 @@ class _FormLabel extends StatelessWidget {
       child: Text(
         text,
         style: const TextStyle(
-          fontSize: 12.5,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF5A4A42),
+          color: AppColors.ink700,
         ),
       ),
     );
@@ -788,19 +799,19 @@ class _CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFAF4EE),
+        color: AppColors.surfaceSubtle,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEFE5DC)),
+        border: Border.all(color: AppColors.border),
       ),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
         onChanged: onChanged,
-        style: const TextStyle(fontSize: 13.5, color: Color(0xFF2C221E)),
+        style: const TextStyle(fontSize: 14, color: AppColors.ink900),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFFA08E84)),
+          hintStyle: const TextStyle(fontSize: 12, color: AppColors.ink200),
           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
@@ -828,17 +839,17 @@ class _CustomDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFAF4EE),
+        color: AppColors.surfaceSubtle,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEFE5DC)),
+        border: Border.all(color: AppColors.border),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
           value: value,
-          hint: Text(hint, style: const TextStyle(fontSize: 12.5, color: Color(0xFFA08E84))),
+          hint: Text(hint, style: const TextStyle(fontSize: 12, color: AppColors.ink200)),
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF8C7A70)),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.ink300),
           items: items,
           onChanged: onChanged,
         ),

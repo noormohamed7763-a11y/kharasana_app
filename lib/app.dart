@@ -30,12 +30,12 @@ class KharasanaApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      builder: (context, child) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
+      // لا builder يفرض Directionality.rtl.
+      //
+      // كان هناك واحد، وكان زائداً: MaterialApp يشتقّ اتجاه النصّ من اللغة
+      // عبر GlobalWidgetsLocalizations، و'ar' تُعيد rtl. وكان يحمل خللاً
+      // صامتاً أيضاً: تحويل child الفارغ إلى SizedBox.shrink() يُعطي شاشة
+      // بيضاء بلا أي أثر تشخيصي إن فشل بناء المسار.
     );
   }
 }

@@ -14,9 +14,19 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         primary: AppColors.primary,
+        // نُثبّت onPrimary صراحةً: بلا ذلك يشتقّه Material وحده، فتحصل
+        // عناصر لا نلمسها يدوياً (FAB، Switch، Checkbox) على زوج غير مقيس.
+        // الأبيض على primary = 5.18:1، وهو الزوج الوحيد المعتمد.
+        onPrimary: AppColors.textOnPrimary,
         surface: AppColors.surface,
+        onSurface: AppColors.textPrimary,
         error: AppColors.error,
+        onError: AppColors.textOnPrimary,
         brightness: Brightness.light,
+      ),
+      iconTheme: const IconThemeData(
+        color: AppColors.ink700,
+        size: AppSizes.iconMd,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
@@ -28,7 +38,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
-        shadowColor: Colors.black.withValues(alpha: 0.06),
+        shadowColor: AppColors.shadow.withValues(alpha: 0.06),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
@@ -38,6 +48,8 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.textOnPrimary,
+          disabledBackgroundColor: AppColors.border,
+          disabledForegroundColor: AppColors.textDisabled,
           minimumSize: const Size.fromHeight(AppSizes.buttonHeight),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),

@@ -11,6 +11,8 @@ import '../../../../core/widgets/error_state.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../orders/presentation/providers/order_details_provider.dart';
 import '../providers/driver_providers.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_format.dart';
 
 class DriverOrderDetailsScreen extends ConsumerStatefulWidget {
   const DriverOrderDetailsScreen({super.key, required this.orderId});
@@ -81,7 +83,7 @@ class _DriverOrderDetailsScreenState
     final dateFormat = DateFormat('d MMMM yyyy', 'ar');
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF7F2),
+      backgroundColor: AppColors.surfaceAlt,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -89,14 +91,14 @@ class _DriverOrderDetailsScreenState
         title: const Text(
           'تفاصيل التوصيل',
           style: TextStyle(
-            color: Color(0xFF9E4A06),
+            color: AppColors.brand700,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Color(0xFF9E4A06)),
+            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.brand700),
             onPressed: () => context.pop(),
           ),
         ],
@@ -116,12 +118,12 @@ class _DriverOrderDetailsScreenState
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFEFE5DC)),
+                  border: Border.all(color: AppColors.border),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: AppColors.shadow.withValues(alpha: 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -138,15 +140,15 @@ class _DriverOrderDetailsScreenState
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF2C221E),
+                            color: AppColors.ink900,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           order.factoryName,
                           style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF7A685E),
+                            fontSize: 14,
+                            color: AppColors.ink500,
                           ),
                         ),
                       ],
@@ -177,8 +179,8 @@ class _DriverOrderDetailsScreenState
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0288D1),
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.info,
+                          foregroundColor: AppColors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -218,7 +220,7 @@ class _DriverOrderDetailsScreenState
                   const SizedBox(height: 8),
                   _InfoRow(label: 'نوع الخرسانة', value: order.concreteTypeName),
                   const SizedBox(height: 8),
-                  _InfoRow(label: 'الكمية', value: '${order.quantity.toStringAsFixed(0)} متر مكعب'),
+                  _InfoRow(label: 'الكمية', value: AppFormat.cubicMetres(order.quantity)),
                   const SizedBox(height: 8),
                   _InfoRow(label: 'نوع البلاطة', value: order.slabType.arabicLabel),
                   const SizedBox(height: 8),
@@ -243,7 +245,7 @@ class _DriverOrderDetailsScreenState
                   children: [
                     Text(
                       order.notes!,
-                      style: const TextStyle(fontSize: 13, color: Color(0xFF2C221E), height: 1.4),
+                      style: const TextStyle(fontSize: 14, color: AppColors.ink900, height: 1.4),
                     ),
                   ],
                 ),
@@ -288,11 +290,12 @@ class _DeliveryAction extends StatelessWidget {
             onPressed: isLoading ? null : onStartDelivery,
             icon: const Icon(Icons.local_shipping_rounded, size: 20),
             label: isLoading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const Text('بدء التوصيل الآن 🚛', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: AppColors.textOnPrimary, strokeWidth: 2))
+                : const Text('بدء التوصيل الآن', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE65100),
-              foregroundColor: Colors.white,
+              // primary لا brand500: الأخير مع أبيض 3.79:1، دون حدّ AA.
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textOnPrimary,
               elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -306,11 +309,11 @@ class _DeliveryAction extends StatelessWidget {
             onPressed: isLoading ? null : onDeliver,
             icon: const Icon(Icons.check_circle_rounded, size: 20),
             label: isLoading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const Text('تأكيد التسليم بنجاح ✅', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: AppColors.textOnPrimary, strokeWidth: 2))
+                : const Text('تأكيد التسليم بنجاح', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2E7D32),
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.success,
+              foregroundColor: AppColors.textOnPrimary,
               elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -321,19 +324,19 @@ class _DeliveryAction extends StatelessWidget {
       OrderStatus.delivered || OrderStatus.closed => Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
+            color: AppColors.successBg,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFC8E6C9)),
+            border: Border.all(color: AppColors.successBorder),
           ),
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 22),
+              Icon(Icons.check_circle, color: AppColors.success, size: 22),
               SizedBox(width: 8),
               Text(
                 'تم إكمال وتفريغ هذا التوصيل بنجاح',
                 style: TextStyle(
-                  color: Color(0xFF2E7D32),
+                  color: AppColors.success,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
@@ -361,12 +364,12 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEFE5DC)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: AppColors.shadow.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -378,20 +381,20 @@ class _SectionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 20, color: const Color(0xFF8A3C04)),
+              Icon(icon, size: 20, color: AppColors.brand800),
               const SizedBox(width: 8),
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C221E),
+                  color: AppColors.ink900,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          const Divider(height: 1, color: Color(0xFFF0E5DC)),
+          const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: 12),
           ...children,
         ],
@@ -413,14 +416,14 @@ class _InfoRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 13, color: Color(0xFF7A685E)),
+          style: const TextStyle(fontSize: 14, color: AppColors.ink500),
         ),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 13.5,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF2C221E),
+            color: AppColors.ink900,
           ),
         ),
       ],

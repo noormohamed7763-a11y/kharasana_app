@@ -8,6 +8,7 @@ import '../../../../core/widgets/loading_list.dart';
 import '../../../client/presentation/widgets/client_bottom_nav_bar.dart';
 import '../providers/orders_list_controller.dart';
 import '../widgets/order_card.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class OrdersListScreen extends ConsumerStatefulWidget {
   const OrdersListScreen({super.key});
@@ -45,7 +46,7 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
     final state = ref.watch(ordersListControllerProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF7F2),
+      backgroundColor: AppColors.surfaceAlt,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -53,18 +54,18 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
         title: const Text(
           'طلباتي',
           style: TextStyle(
-            color: Color(0xFF9E4A06),
+            color: AppColors.brand700,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF5A4A42)),
+          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink700),
           onPressed: () {},
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Color(0xFF9E4A06)),
+            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.brand700),
             onPressed: () => context.pop(),
           ),
         ],
@@ -84,16 +85,16 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFEFE5DC)),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: TextField(
                     onChanged: (val) => setState(() => _searchQuery = val.trim()),
                     decoration: const InputDecoration(
                       hintText: 'بحث برقم الطلب أو اسم المشروع...',
-                      hintStyle: TextStyle(fontSize: 12.5, color: Color(0xFF8C7A70)),
-                      prefixIcon: Icon(Icons.search_rounded, color: Color(0xFF8C7A70), size: 22),
+                      hintStyle: TextStyle(fontSize: 12, color: AppColors.ink500),
+                      prefixIcon: Icon(Icons.search_rounded, color: AppColors.ink300, size: 22),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -119,16 +120,16 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                       label: Text(
                         filter,
                         style: TextStyle(
-                          fontSize: 12.5,
+                          fontSize: 12,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected ? Colors.white : const Color(0xFF7A685E),
+                          color: isSelected ? AppColors.white : AppColors.ink500,
                         ),
                       ),
                       selected: isSelected,
-                      selectedColor: const Color(0xFF8A3C04),
-                      backgroundColor: Colors.white,
+                      selectedColor: AppColors.brand800,
+                      backgroundColor: AppColors.white,
                       side: BorderSide(
-                        color: isSelected ? const Color(0xFF8A3C04) : const Color(0xFFEFE5DC),
+                        color: isSelected ? AppColors.brand800 : AppColors.border,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),

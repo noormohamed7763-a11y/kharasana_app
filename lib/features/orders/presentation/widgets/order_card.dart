@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../data/models/order_summary_dto.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_format.dart';
 
 class OrderCard extends StatelessWidget {
   const OrderCard({super.key, required this.order, required this.onTap});
@@ -16,12 +18,12 @@ class OrderCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEFE5DC)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: AppColors.shadow.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -43,17 +45,17 @@ class OrderCard extends StatelessWidget {
                     Text(
                       'طلب رقم #${order.orderNumber}',
                       style: const TextStyle(
-                        fontSize: 14.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C221E),
+                        color: AppColors.ink900,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       order.factoryName,
                       style: const TextStyle(
-                        fontSize: 12.5,
-                        color: Color(0xFF7A685E),
+                        fontSize: 12,
+                        color: AppColors.ink500,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -65,7 +67,7 @@ class OrderCard extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFF0E5DC)),
+          const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: 12),
 
           // Specs (Concrete type, Quantity, Date)
@@ -74,39 +76,39 @@ class OrderCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.layers_outlined, size: 16, color: Color(0xFF8A3C04)),
+                  const Icon(Icons.layers_outlined, size: 16, color: AppColors.brand800),
                   const SizedBox(width: 4),
                   Text(
                     order.concreteTypeName,
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF2C221E),
+                      color: AppColors.ink900,
                     ),
                   ),
                 ],
               ),
               Row(
                 children: [
-                  const Icon(Icons.view_in_ar_rounded, size: 16, color: Color(0xFF8A3C04)),
+                  const Icon(Icons.view_in_ar_rounded, size: 16, color: AppColors.brand800),
                   const SizedBox(width: 4),
                   Text(
-                    '${order.quantity.toStringAsFixed(0)} متر مكعب',
+                    AppFormat.cubicMetres(order.quantity),
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF2C221E),
+                      color: AppColors.ink900,
                     ),
                   ),
                 ],
               ),
               Row(
                 children: [
-                  const Icon(Icons.calendar_today_outlined, size: 14, color: Color(0xFF8C7A70)),
+                  const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.ink300),
                   const SizedBox(width: 4),
                   Text(
                     dateStr,
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF8C7A70)),
+                    style: const TextStyle(fontSize: 12, color: AppColors.ink500),
                   ),
                 ],
               ),
@@ -121,8 +123,8 @@ class OrderCard extends StatelessWidget {
             child: OutlinedButton(
               onPressed: onTap,
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFFD4C2B4)),
-                backgroundColor: const Color(0xFFFDF9F5),
+                side: const BorderSide(color: AppColors.borderStrong),
+                backgroundColor: AppColors.surfaceAlt,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -130,9 +132,9 @@ class OrderCard extends StatelessWidget {
               child: const Text(
                 'عرض التفاصيل',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF8A3C04),
+                  color: AppColors.brand800,
                 ),
               ),
             ),
