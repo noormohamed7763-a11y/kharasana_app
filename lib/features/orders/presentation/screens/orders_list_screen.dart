@@ -33,6 +33,13 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
         ref.read(ordersListControllerProvider.notifier).loadMore();
       }
     });
+
+    // ✅ تحديث البيانات عند فتح الشاشة (بعد بناء الـ Widget)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(ordersListControllerProvider.notifier).refresh();
+      }
+    });
   }
 
   @override

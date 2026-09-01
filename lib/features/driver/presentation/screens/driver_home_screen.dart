@@ -10,6 +10,7 @@ import '../../../../core/widgets/status_badge.dart';
 import '../../../orders/data/models/order_summary_dto.dart';
 import '../providers/driver_providers.dart';
 import '../widgets/driver_bottom_nav_bar.dart';
+import '../widgets/driver_status_selector.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_format.dart';
 
@@ -88,9 +89,17 @@ class DriverHomeScreen extends ConsumerWidget {
                 );
               },
             ),
+            const SizedBox(height: 14),
+
+            // 2. حالة توفّر السائق — مصدرها محلي بسبب 403 على GET /api/Users/{id}
+            sessionAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (user) => DriverStatusSelector(currentStatus: user.driverStatus),
+            ),
             const SizedBox(height: 22),
 
-            // 2. Driver Capabilities / Powers Overview (الأشياء التي يستطيع فعلها)
+            // 3. Driver Capabilities / Powers Overview
             const Text(
               'المهام والصلاحيات المتاحة',
               style: TextStyle(
@@ -132,7 +141,7 @@ class DriverHomeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 26),
 
-            // 3. Assigned Orders Section
+            // 4. Assigned Orders Section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -166,7 +175,7 @@ class DriverHomeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
 
-            // 4. Orders List View
+            // 5. Orders List View
             ordersAsync.when(
               loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 40),
@@ -259,9 +268,6 @@ class _DriverHeader extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            // نفس السبب في بطاقة رئيسية العميل: التدرّج يحمل اسم السائق
-            // وتحيّته بالأبيض، وbrand400 يعطي 2.82:1 — يفشل حتى حدّ النص
-            // الكبير 3:1.
             AppColors.brand600,
             AppColors.brand800,
           ],
@@ -307,9 +313,6 @@ class _DriverHeader extends StatelessWidget {
                       'أهلاً بك، كابتن',
                       style: TextStyle(
                         fontSize: 14,
-                        // معتم لا white70: الشفافية 0.70 فوق brand600 تعطي
-                        // 3.29:1. التمييز عن الاسم يأتي من الحجم والوزن
-                        // (14/w500 مقابل 22/w800) لا من الشفافية.
                         color: AppColors.white,
                         fontWeight: FontWeight.w500,
                       ),
@@ -332,8 +335,6 @@ class _DriverHeader extends StatelessWidget {
           const SizedBox(height: 16),
           Divider(height: 1, color: AppColors.white.withValues(alpha: 0.24)),
           const SizedBox(height: 12),
-
-          // Factory badge
           Row(
             children: [
               const Icon(Icons.factory_rounded, color: AppColors.white, size: 18),

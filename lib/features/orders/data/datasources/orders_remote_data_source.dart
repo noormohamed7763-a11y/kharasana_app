@@ -9,14 +9,38 @@ class OrdersRemoteDataSource {
   OrdersRemoteDataSource(this._dio);
   final Dio _dio;
 
+  /// يمر عبر ApiResponse<T>.fromJson تماماً مثل getOrders وgetOrderById.
+  ///
+  /// كان سابقاً يقرأ response.data['data']['orderId'] مباشرة دون فحص
+  /// success، فأي رد تحقق حقيقي من الخادم (مثل "الكمية غير صالحة") كان
+  /// يُنتج TypeError غامضاً بدل إظهار رسالة الخادم — في أهم عملية بالتطبيق.
   Future<int> createOrder(CreateOrderDto dto) async {
     final response = await _dio.post(
       ApiEndpoints.orders,
       data: dto.toJson(),
     );
-    // نفترض أن الاستجابة ترجع { "data": { "orderId": 123 } }
-    final data = response.data as Map<String, dynamic>;
-    return data['data']['orderId'] as int;
+    final apiResponse = ApiResponse<CreateOrderResponseDto>.fromJson(
+      response.data as Map<String, dynamic>,
+      (json) => CreateOrderResponseDto.fromJson(json as Map<String, dynamic>),
+    );
+
+    if (!apiResponse.success) {
+      throw DioException(
+        requestOptions: RequestOptions(path: ApiEndpoints.orders),
+        response: Response(
+          requestOptions: RequestOptions(path: ApiEndpoints.orders),
+          data: {'message': apiResponse.message},
+          statusCode: 400,
+        ),
+        type: DioExceptionType.badResponse,
+      );
+    }
+
+    if (apiResponse.data == null) {
+      throw Exception('تعذر قراءة بيانات الطلب من الخادم.');
+    }
+
+    return apiResponse.data!.orderId;
   }
 
   Future<PagedResult<OrderSummaryDto>> getOrders({

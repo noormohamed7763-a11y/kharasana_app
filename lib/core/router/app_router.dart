@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'app_routes.dart';
 import '../storage/secure_storage_service.dart';
+import '../utils/api_enums.dart';
 import '../../features/authentication/presentation/screens/splash_screen.dart';
 import '../../features/authentication/presentation/screens/login_screen.dart';
 import '../../features/authentication/presentation/screens/register_screen.dart';
@@ -41,10 +42,16 @@ Future<String?> resolveAuthRedirect(
   // إذا كانت هناك جلسة والمستخدم يحاول الوصول إلى login أو register
   if (hasSession && isAuthRoute) {
     final role = await secureStorage.readRole();
-    if (role == 'driver') {
+    
+    // ✅ الأهم: لا نرسل أي دور غير معروف إلى Client افتراضياً
+    if (role == UserRole.driver.name) {
       return AppRoutes.driverHome;
-    } else {
+    } else if (role == UserRole.client.name) {
       return AppRoutes.clientHome;
+    } else {
+      // Admin / FactoryEmployee / null / غير معروف
+      // ليس لديهم صفحات رئيسية في التطبيق الحالي
+      return AppRoutes.login;
     }
   }
 
@@ -54,11 +61,18 @@ Future<String?> resolveAuthRedirect(
     final goingToDriver = matchedLocation.startsWith('/driver');
     final goingToClient = matchedLocation.startsWith('/client');
 
-    if (role == 'driver' && goingToClient) {
+    if (role == UserRole.driver.name && goingToClient) {
       return AppRoutes.driverHome;
     }
-    if (role == 'client' && goingToDriver) {
+    if (role == UserRole.client.name && goingToDriver) {
       return AppRoutes.clientHome;
+    }
+    
+    // ✅ Admin/FactoryEmployee يحاول الوصول إلى أي مسار محمي → login
+    if (role != UserRole.driver.name && role != UserRole.client.name) {
+      if (goingToDriver || goingToClient) {
+        return AppRoutes.login;
+      }
     }
   }
 

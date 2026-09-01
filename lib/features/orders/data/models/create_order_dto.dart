@@ -52,3 +52,17 @@ class CreateOrderDto {
     };
   }
 }
+
+/// مطابق لحقل data في استجابة POST /api/Orders — نفس نمط RegisterResponseDto.
+/// لا نقرأ orderId يدوياً من response.data['data']['orderId'] كما كان سابقاً؛
+/// هذا الكلاس يمر عبر ApiResponse<T>.fromJson مثل كل الدوال الأخرى، بحيث
+/// يُفحص success وتصل رسالة الخادم الحقيقية عند الفشل بدل استثناء TypeError
+/// غامض يُبتلع في UnknownFailure.
+class CreateOrderResponseDto {
+  final int orderId;
+  CreateOrderResponseDto({required this.orderId});
+
+  factory CreateOrderResponseDto.fromJson(Map<String, dynamic> json) {
+    return CreateOrderResponseDto(orderId: json['orderId'] as int);
+  }
+}
