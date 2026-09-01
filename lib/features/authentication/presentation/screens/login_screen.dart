@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/providers/core_providers.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/api_enums.dart';
-import '../../../../core/utils/result.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../providers/auth_controller.dart';
+import '../providers/auth_state.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -31,15 +31,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
           Positioned.fill(
             child: Image.asset(
               'assets/images/auth_bg.jpg',
               fit: BoxFit.cover,
             ),
           ),
-
-          // Dark Gradient Overlay for optimal contrast & readability
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -57,8 +54,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
           ),
-
-          // Main Content
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -66,8 +61,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Spacer(flex: 5),
-
-                  // Floating Brand / Engineering Badge
                   Align(
                     alignment: Alignment.centerRight,
                     child: Container(
@@ -93,10 +86,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // Title
                   const Text(
                     'مرحباً بك في خرسانة',
                     style: TextStyle(
@@ -107,10 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       height: 1.2,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
-                  // Subtitle
                   Text(
                     'أسهل طريقة لطلب الخرسانة الجاهزة في\nاليمن بكل موثوقية واحترافية.',
                     style: TextStyle(
@@ -120,10 +107,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       height: 1.6,
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
-                  // Login Button (Primary Orange / Amber)
                   SizedBox(
                     height: 54,
                     child: ElevatedButton(
@@ -152,10 +136,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 14),
-
-                  // Register Button (Glassmorphic / Translucent)
                   SizedBox(
                     height: 54,
                     child: OutlinedButton(
@@ -187,10 +168,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // Legal Disclaimer
                   Text(
                     'بالاستمرار، أنت توافق على الشروط والأحكام الخاصة بنا',
                     textAlign: TextAlign.center,
@@ -199,7 +177,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       color: AppColors.white.withValues(alpha: 0.6),
                     ),
                   ),
-
                   const SizedBox(height: 8),
                 ],
               ),
@@ -221,7 +198,6 @@ class _LoginModalSheet extends ConsumerStatefulWidget {
 class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  bool _isLoading = false;
   bool _obscurePassword = true;
 
   @override
@@ -231,57 +207,41 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
     super.dispose();
   }
 
-  Future<void> _login() async {
+  void _login() {
     if (_emailCtrl.text.trim().isEmpty || _passCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('يرجى إدخال البريد الإلكتروني أو الهاتف وكلمة المرور')),
       );
       return;
     }
-
-    setState(() => _isLoading = true);
-    try {
-      final authRepo = ref.read(authRepositoryProvider);
-      final result = await authRepo.login(
-        emailOrPhone: _emailCtrl.text.trim(),
-        password: _passCtrl.text,
-      );
-
-      if (!mounted) return;
-
-      switch (result) {
-        case Success(data: final res):
-          await ref.read(secureStorageProvider).saveSession(
-                token: res.token,
-                role: res.role.name,
-                userId: res.userId,
-                fullName: res.fullName,
-              );
-          if (!mounted) return;
-          Navigator.of(context).pop(); // Close sheet
-          if (res.role == UserRole.driver) {
-            context.go(AppRoutes.driverHome);
-          } else {
-            context.go(AppRoutes.clientHome);
-          }
-        case Error(failure: final failure):
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(failure.messageAr)),
-          );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('حدث خطأ غير متوقع، حاول مرة أخرى')),
+    ref.read(authControllerProvider.notifier).login(
+          _emailCtrl.text.trim(),
+          _passCtrl.text,
         );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AuthState>(authControllerProvider, (previous, next) {
+      switch (next) {
+        case AuthAuthenticated(role: final role):
+          Navigator.of(context).pop();
+          if (role == UserRole.driver) {
+            context.go(AppRoutes.driverHome);
+          } else {
+            context.go(AppRoutes.clientHome);
+          }
+        case AuthError(message: final message):
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message), duration: const Duration(seconds: 4)),
+          );
+        default:
+          break;
+      }
+    });
+
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState is AuthLoading;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
@@ -295,7 +255,6 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Handle Bar
             Center(
               child: Container(
                 width: 44,
@@ -307,8 +266,6 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Header
             Row(
               children: [
                 Container(
@@ -348,8 +305,6 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
               ],
             ),
             const SizedBox(height: 24),
-
-            // Email or Phone Input
             AppTextField(
               label: 'رقم الهاتف أو البريد الإلكتروني',
               controller: _emailCtrl,
@@ -357,8 +312,6 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
-
-            // Password Input with eye toggle
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -381,19 +334,13 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
                 ),
               ],
             ),
-
             const SizedBox(height: 24),
-
-            // Submit Button
             PrimaryButton(
               label: 'دخول',
-              isLoading: _isLoading,
+              isLoading: isLoading,
               onPressed: _login,
             ),
-
             const SizedBox(height: 12),
-
-            // Register Shortcut
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();

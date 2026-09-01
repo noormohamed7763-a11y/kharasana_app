@@ -14,16 +14,10 @@ class AuthController extends StateNotifier<AuthState> {
 
   final AuthRepository _repository;
 
-  Future<void> checkSession() async {
-    state = const AuthLoading();
-    final hasSession = await _repository.hasActiveSession();
-    if (!hasSession) {
-      state = const AuthUnauthenticated();
-      return;
-    }
-    // نعتمد على الجلسة المخزنة محلياً
-    state = const AuthUnauthenticated();
-  }
+  // ✅ ملاحظة: لا توجد هنا دالة checkSession. كانت موجودة سابقاً لكنها كانت
+  // تُرجع AuthUnauthenticated دائماً بلا أي منطق فعلي مختلف عن ذلك،
+  // ولا شيء في التطبيق يستدعيها (SplashScreen يقرأ SecureStorageService
+  // مباشرة). دالة ميتة تعطي انطباعاً كاذباً بوجود مسار فحص جلسة إضافي.
 
   Future<void> login(String emailOrPhone, String password) async {
     state = const AuthLoading();

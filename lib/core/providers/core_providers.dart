@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../network/dio_client.dart';
 import '../session/session_user.dart';
 import '../storage/secure_storage_service.dart';
+import '../utils/api_enums.dart';
 import '../../features/authentication/data/datasources/auth_remote_data_source.dart';
 import '../../features/authentication/data/repositories/auth_repository_impl.dart';
 import '../../features/authentication/domain/repositories/auth_repository.dart';
@@ -96,7 +97,17 @@ final sessionUserProvider = FutureProvider.autoDispose<SessionUser>((ref) async 
   final userId = await storage.readUserId();
   final fullName = await storage.readFullName();
   final role = await storage.readRole();
-  return SessionUser(userId: userId, fullName: fullName, role: role);
+  final driverStatusIndex = await storage.readDriverStatus(); // ✅ جديد
+  
+  return SessionUser(
+    userId: userId,
+    fullName: fullName,
+    role: role,
+    driverStatus:
+        driverStatusIndex != null && driverStatusIndex < DriverStatus.values.length
+            ? DriverStatus.values[driverStatusIndex]
+            : null,
+  );
 });
 
 // ============================================================
