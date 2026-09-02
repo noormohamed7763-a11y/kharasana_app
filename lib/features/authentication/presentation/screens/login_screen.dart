@@ -225,11 +225,32 @@ class _LoginModalSheetState extends ConsumerState<_LoginModalSheet> {
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
       switch (next) {
         case AuthAuthenticated(role: final role):
-          Navigator.of(context).pop();
-          if (role == UserRole.driver) {
-            context.go(AppRoutes.driverHome);
-          } else {
-            context.go(AppRoutes.clientHome);
+          // التطبيق يضمّ واجهتين فقط: العميل والسائق. المدير وموظف المصنع
+          // يسجّلان الدخول بنجاح في الخادم لكن لا شاشة رئيسية لهما هنا.
+          //
+          // كان الشرط `role == driver ? driverHome : clientHome`، فيُرسَل
+          // المدير إلى واجهة العميل، ويردّه حارس الراوتر إلى شاشة الدخول
+          // فوراً — فيرتدّ بلا سبب معروض، وجلسته محفوظة في التخزين.
+          switch (role) {
+            case UserRole.driver:
+              Navigator.of(context).pop();
+              context.go(AppRoutes.driverHome);
+            case UserRole.client:
+              Navigator.of(context).pop();
+              context.go(AppRoutes.clientHome);
+            case UserRole.admin:
+            case UserRole.factoryEmployee:
+              // إنهاء الجلسة: إبقاؤها يعني توكن صالحاً بلا واجهة تستخدمه.
+              ref.read(authControllerProvider.notifier).logout();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'حساب "${role.arabicLabel}" يُدار من لوحة التحكم، '
+                    'وهذا التطبيق مخصّص للعملاء والسائقين.',
+                  ),
+                  duration: const Duration(seconds: 5),
+                ),
+              );
           }
         case AuthError(message: final message):
           ScaffoldMessenger.of(context).showSnackBar(

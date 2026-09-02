@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/providers/core_providers.dart';
-import '../../../../core/utils/api_enums.dart';
 import '../../../../core/utils/result.dart';
 import '../../../orders/data/models/order_summary_dto.dart';
 
@@ -27,27 +26,8 @@ final driverOrdersProvider =
   };
 });
 
-/// نص الخطأ المناسب للعرض من كائن خطأ قادم من أي provider.
-String failureMessage(Object error) =>
-    error is Failure ? error.messageAr : 'حدث خطأ غير متوقع.';
-
-/// يحدّث حالة توفّر السائق في الخادم ثم يحفظها محلياً فوراً.
-///
-/// لا نعتمد على قراءتها لاحقاً عبر GET /api/Users/{id} لأن هذا المسار
-/// يرجع 403 لدور Driver في الخادم الحالي — الحفظ المحلي بعد نجاح التحديث
-/// هو مصدر الحقيقة الوحيد المتاح حالياً.
-final driverStatusUpdateProvider =
-    FutureProvider.autoDispose.family<void, DriverStatus>((ref, status) async {
-  final storage = ref.watch(secureStorageProvider);
-  final userId = await storage.readUserId();
-  if (userId == null) throw const UnauthorizedFailure();
-
-  final result = await ref.watch(profileRepositoryProvider).updateDriverStatus(userId, status);
-  switch (result) {
-    case Success():
-      await storage.saveDriverStatus(status.index);
-      ref.invalidate(sessionUserProvider);
-    case Error(failure: final failure):
-      throw failure;
-  }
-});
+// حالة توفّر السائق انتقلت إلى `driver_status_controller.dart`.
+// كانت هنا `FutureProvider.autoDispose.family<void, DriverStatus>` وهو نمط
+// خاطئ لإجراء: يخزّن نتيجة كل حالة على حدة فيتخطّى الطلب عند إعادة اختيارها،
+// ويُبطل `sessionUserProvider` الذي كانت الشريحة مبنيّة داخل `when` الخاص به
+// فتُهدَم من الشجرة وتظهر الضغطة بلا أثر.

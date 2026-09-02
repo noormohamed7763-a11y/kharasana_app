@@ -7,13 +7,17 @@ import '../utils/api_enums.dart';
 ///   • `GET /api/Users/me`   → 405 (المسار مُعرَّف لـ PUT فقط)
 ///   • `GET /api/Users/{id}` → 403 لدور Driver
 /// لذلك نعتمد على `SecureStorageService` التي تخزّن الاسم والدور والمعرّف
-/// وقت تسجيل الدخول، وحالة توفّر السائق بعد كل تحديث ناجح لها.
+/// وقت تسجيل الدخول.
+///
+/// حالة توفّر السائق ليست هنا عمداً: مالكها
+/// `DriverStatusController`. وجودها في هذا الكائن كان يفرض إبطال
+/// `sessionUserProvider` بعد كل تبديل حالة، فتُعاد قراءة الجلسة كلها
+/// وتُهدَم الشرائح المبنيّة داخل `when` الخاص به.
 class SessionUser {
   const SessionUser({
     required this.userId,
     required this.fullName,
     required this.role,
-    this.driverStatus, // ✅ جديد
   });
 
   final int? userId;
@@ -21,10 +25,6 @@ class SessionUser {
 
   /// الدور كما خُزِّن نصياً (مثل `driver` أو `client`).
   final String? role;
-
-  /// ✅ حالة توفّر السائق كما خُزِّنت محلياً بعد آخر تحديث ناجح.
-  /// `null` يعني: لم تُحفظ حالة بعد، أو المستخدم ليس سائقاً.
-  final DriverStatus? driverStatus;
 
   bool get isDriver => role == UserRole.driver.name;
 

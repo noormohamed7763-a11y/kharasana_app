@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/notifications_button.dart';
 import '../../../../core/utils/api_enums.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_state.dart';
@@ -34,9 +35,16 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
       }
     });
 
-    // ✅ تحديث البيانات عند فتح الشاشة (بعد بناء الـ Widget)
+    // تحديث البيانات عند فتح الشاشة — بشرط أن يكون المزوّد حيّاً من قبل.
+    //
+    // `OrdersListController` ينادي `loadFirstPage()` في بانيه، فاستدعاء
+    // `refresh()` بلا شرط كان يُطلق طلباً شبكياً ثانياً لكل فتح للشاشة.
+    // الشرط يميّز الحالتين: إن كان المزوّد قد أُنشئ الآن فحالته `Loading`
+    // والطلب جارٍ، وإن كان حيّاً من قبل (شاشة الرئيسية تراقبه) فحالته
+    // `Loaded` ببيانات قد تكون قديمة، فهنا فقط نُحدّث.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
+      if (!mounted) return;
+      if (ref.read(ordersListControllerProvider) is OrdersListLoaded) {
         ref.read(ordersListControllerProvider.notifier).refresh();
       }
     });
@@ -66,10 +74,7 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
             fontSize: 18,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink700),
-          onPressed: () {},
-        ),
+        leading: const NotificationsButton(),
         actions: [
           IconButton(
             icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.brand700),
@@ -84,7 +89,12 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
             message: message,
             onRetry: () => ref.read(ordersListControllerProvider.notifier).loadFirstPage(),
           ),
-        OrdersListLoaded(items: final items, isLoadingMore: final loadingMore) => Column(
+        OrdersListLoaded(
+          items: final items,
+          isLoadingMore: final loadingMore,
+          hasMore: final hasMore,
+        ) =>
+          Column(
             children: [
               // 1. Search Bar
               Padding(
@@ -181,31 +191,58 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                     if (filteredItems.isEmpty) {
                       return RefreshIndicator(
                         onRefresh: () => ref.read(ordersListControllerProvider.notifier).refresh(),
-                        child: const SingleChildScrollView(
-                          physics: AlwaysScrollableScrollPhysics(),
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
                           child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 60),
-                            child: EmptyState(
-                              title: 'لا توجد طلبات مطابقة',
-                              message: 'لم يتم العثور على أي طلبات في هذه الحالة.',
-                              icon: Icons.receipt_long_outlined,
+                            padding: const EdgeInsets.symmetric(vertical: 60),
+                            child: Column(
+                              children: [
+                                EmptyState(
+                                  title: 'لا توجد طلبات مطابقة',
+                                  // لا ندّعي أنّه لا يملك طلباً بهذه الحالة
+                                  // ونحن لم نُحمّل بقية الصفحات بعد.
+                                  message: hasMore
+                                      ? 'لم نجد طلباً مطابقاً في الطلبات المحمَّلة، وهناك صفحات لم تُحمَّل بعد.'
+                                      : 'لم يتم العثور على أي طلبات في هذه الحالة.',
+                                  icon: Icons.receipt_long_outlined,
+                                ),
+                                if (hasMore)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 12),
+                                    child: _LoadMoreButton(
+                                      isLoading: loadingMore,
+                                      onPressed: () => ref
+                                          .read(ordersListControllerProvider.notifier)
+                                          .loadMore(),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
                       );
                     }
 
+                    // زرّ صريح إلى جانب التمرير: مع تصفية مفعَّلة قد تقصر
+                    // القائمة عن ملء الشاشة، فلا تُمرَّر ولا يُستدعى loadMore
+                    // أبداً، فتبقى بقية الصفحات بعيدة عن متناول المستخدم.
+                    final showFooter = hasMore || loadingMore;
                     return RefreshIndicator(
                       onRefresh: () => ref.read(ordersListControllerProvider.notifier).refresh(),
                       child: ListView.separated(
                         controller: _scrollController,
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                        itemCount: filteredItems.length + (loadingMore ? 1 : 0),
+                        itemCount: filteredItems.length + (showFooter ? 1 : 0),
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           if (index >= filteredItems.length) {
-                            return const Center(child: CircularProgressIndicator());
+                            return _LoadMoreButton(
+                              isLoading: loadingMore,
+                              onPressed: () => ref
+                                  .read(ordersListControllerProvider.notifier)
+                                  .loadMore(),
+                            );
                           }
                           final order = filteredItems[index];
                           return OrderCard(
@@ -221,6 +258,55 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
             ],
           ),
       },
+    );
+  }
+}
+
+/// تحميل الصفحة التالية بضغطة صريحة.
+///
+/// التمرير وحده لا يكفي: التصفية والبحث يعملان على الطلبات المحمَّلة فقط،
+/// فقائمة قصيرة لا تُمرَّر ولا تُطلق `loadMore`، وتبقى بقية الصفحات محجوبة.
+class _LoadMoreButton extends StatelessWidget {
+  const _LoadMoreButton({required this.isLoading, required this.onPressed});
+
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: isLoading
+            ? const SizedBox(
+                height: 32,
+                width: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: AppColors.primary,
+                ),
+              )
+            : OutlinedButton.icon(
+                onPressed: onPressed,
+                icon: const Icon(Icons.expand_more_rounded, size: 20),
+                label: const Text(
+                  'تحميل طلبات أقدم',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.brand800,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.borderStrong),
+                  backgroundColor: AppColors.white,
+                  foregroundColor: AppColors.brand800,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+      ),
     );
   }
 }

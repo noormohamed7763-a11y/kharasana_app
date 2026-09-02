@@ -38,4 +38,19 @@ class AppFormat {
 
   /// رقم عشري بفواصل الآلاف، بلا وحدة.
   static String decimal(num value) => _decimal.format(value);
+
+  /// تاريخ بالعربية بأرقام لاتينية: `15 يناير 2026`.
+  ///
+  /// كان `DateFormat('d MMMM yyyy', 'ar')` مكتوباً في أربعة ملفات مستقلّة،
+  /// وهو ينتج أرقاماً هندية (`١٥ يناير ٢٠٢٦`) لأن `DateFormat` يتبع أرقام
+  /// اللغة. فكانت البطاقة الواحدة تحمل النظامين معاً: `19.75 م³` لاتينية
+  /// بجوار `١٥ يناير ٢٠٢٦` هندية. اسم الشهر يبقى من `intl`، واليوم والسنة
+  /// يُبنيان من الأعداد مباشرةً فتخرج لاتينية دائماً.
+  ///
+  /// يعتمد على تهيئة رموز تواريخ العربية، ويوفّرها
+  /// `GlobalMaterialLocalizations` المسجَّل في `app.dart`.
+  static String date(DateTime value) =>
+      '${value.day} ${_monthName.format(value)} ${value.year}';
+
+  static final DateFormat _monthName = DateFormat('MMMM', 'ar');
 }

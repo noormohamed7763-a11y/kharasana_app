@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# مخرجات مُصرِّف Kotlin (تظهر بعد أول بناء لأندرويد)
+/android/.kotlin/

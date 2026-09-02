@@ -49,3 +49,10 @@ class ParseFailure extends Failure {
 
   final Object details;
 }
+
+/// نص الخطأ المناسب للعرض من كائن خطأ قادم من أي `provider`.
+///
+/// كانت هذه الدالة داخل `driver_providers.dart`، وتحتاجها شاشات العميل
+/// أيضاً — فمكانها إلى جانب [Failure] نفسه.
+String failureMessage(Object error) =>
+    error is Failure ? error.messageAr : 'حدث خطأ غير متوقع.';

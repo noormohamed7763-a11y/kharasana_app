@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/notifications_button.dart';
 import '../../../../core/providers/core_providers.dart';
-import '../../../../core/router/app_routes.dart';
+import '../../../../core/session/logout_action.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/driver_providers.dart';
 import '../widgets/driver_bottom_nav_bar.dart';
@@ -14,7 +14,6 @@ class DriverProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionAsync = ref.watch(sessionUserProvider);
     final ordersAsync = ref.watch(driverOrdersProvider);
-    final storage = ref.read(secureStorageProvider);
 
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
@@ -30,10 +29,7 @@ class DriverProfileScreen extends ConsumerWidget {
             fontSize: 18,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink700),
-          onPressed: () {},
-        ),
+        leading: const NotificationsButton(),
       ),
       bottomNavigationBar: const DriverBottomNavBar(currentIndex: 1),
       body: sessionAsync.when(
@@ -212,11 +208,7 @@ class DriverProfileScreen extends ConsumerWidget {
                 SizedBox(
                   height: 50,
                   child: OutlinedButton.icon(
-                    onPressed: () async {
-                      await storage.clearSession();
-                      if (!context.mounted) return;
-                      context.go(AppRoutes.login);
-                    },
+                    onPressed: () => confirmAndLogout(context, ref),
                     icon: const Icon(Icons.logout_rounded, color: AppColors.error),
                     label: const Text(
                       'تسجيل الخروج',
@@ -252,19 +244,24 @@ class _ProfileRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // اسم المصنع يأتي من الخادم بلا حدّ لطوله، فالقيمة مرنة لا ثابتة.
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: const TextStyle(fontSize: 14, color: AppColors.ink500),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: AppColors.ink900,
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.ink900,
+            ),
           ),
         ),
       ],

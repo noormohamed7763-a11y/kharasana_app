@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/errors/failure.dart';
 import '../../../../core/providers/core_providers.dart';
 import '../../../../core/utils/api_enums.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -80,7 +80,6 @@ class _DriverOrderDetailsScreenState
   @override
   Widget build(BuildContext context) {
     final orderAsync = ref.watch(orderDetailsProvider(widget.orderId));
-    final dateFormat = DateFormat('d MMMM yyyy', 'ar');
 
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
@@ -105,8 +104,9 @@ class _DriverOrderDetailsScreenState
       ),
       body: orderAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => ErrorStateView(
-          message: 'تعذر تحميل تفاصيل الطلب.',
+        error: (error, __) => ErrorStateView(
+          // سبب الفشل كما جاء من الطبقة الدنيا، لا نصّ واحد لكل الأسباب.
+          message: failureMessage(error),
           onRetry: () => ref.invalidate(orderDetailsProvider(widget.orderId)),
         ),
         data: (order) => SingleChildScrollView(
@@ -231,7 +231,7 @@ class _DriverOrderDetailsScreenState
                   ],
                   if (order.pouringDate != null) ...[
                     const SizedBox(height: 8),
-                    _InfoRow(label: 'موعد الصب', value: dateFormat.format(order.pouringDate!)),
+                    _InfoRow(label: 'موعد الصب', value: AppFormat.date(order.pouringDate!)),
                   ],
                 ],
               ),
@@ -411,19 +411,25 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // القيمة مرنة: «تفاصيل العنوان» و«وصف الموقع» نصوص حرّة يكتبها العميل،
+    // وصفّ من نصّين غير مقيّدين يتجاوز حدوده بمجرّد أن تطول القيمة.
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: const TextStyle(fontSize: 14, color: AppColors.ink500),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.ink900,
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.ink900,
+            ),
           ),
         ),
       ],

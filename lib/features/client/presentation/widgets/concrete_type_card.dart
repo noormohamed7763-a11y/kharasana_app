@@ -61,18 +61,23 @@ class ConcreteTypeCard extends StatelessWidget {
             const Divider(height: 1),
             const SizedBox(height: AppSpacing.xs),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
                   'سعر المتر المكعب:',
                   style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
-                Text(
-                  AppFormat.money(concreteType.unitPrice),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    AppFormat.money(concreteType.unitPrice),
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

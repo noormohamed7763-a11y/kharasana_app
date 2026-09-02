@@ -25,16 +25,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final storage = ref.read(secureStorageProvider);
     final hasSession = await storage.hasActiveSession();
 
-    if (hasSession) {
-      final role = await storage.readRole();
+    if (!hasSession) {
       if (!mounted) return;
-      if (role == UserRole.driver.name) {
-        context.go(AppRoutes.driverHome);
-      } else {
-        context.go(AppRoutes.clientHome);
-      }
+      context.go(AppRoutes.login);
+      return;
+    }
+
+    final role = await storage.readRole();
+    if (!mounted) return;
+
+    // الأدوار الثلاثة صريحة: كان الفرع `else` يرسل كلّ دور غير السائق إلى
+    // واجهة العميل — ومنها المدير وموظف المصنع ودورٌ لم يُخزَّن أصلاً — فيردّهم
+    // حارس الراوتر إلى شاشة الدخول فيرتدّ المستخدم بين شاشتين عند كل تشغيل.
+    if (role == UserRole.driver.name) {
+      context.go(AppRoutes.driverHome);
+    } else if (role == UserRole.client.name) {
+      context.go(AppRoutes.clientHome);
     } else {
-      if (!mounted) return;
       context.go(AppRoutes.login);
     }
   }

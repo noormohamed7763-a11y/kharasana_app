@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_format.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
   const OrderSuccessScreen({
@@ -20,8 +20,8 @@ class OrderSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('d MMMM yyyy', 'ar');
-    final dateStr = pouringDate != null ? dateFormat.format(pouringDate!) : 'اليوم';
+    final dateStr =
+        pouringDate != null ? AppFormat.date(pouringDate!) : 'لم يُحدَّد';
 
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
@@ -135,7 +135,13 @@ class OrderSuccessScreen extends StatelessWidget {
                     const SizedBox(height: 14),
 
                     // Info Rows
-                    _DetailRow(icon: Icons.tag_rounded, label: 'رقم الطلب', value: '#KH-2026-$orderId'),
+                    //
+                    // معرّف الطلب كما أرجعه الخادم، لا رقم مُصنَّع.
+                    // كان النصّ `'#KH-2026-$orderId'`: سنة مكتوبة يدوياً
+                    // وصيغة لا وجود لها في الخادم — فالرقم الذي يقرأه العميل
+                    // هنا ويسجّله لا يطابق `orderNumber` الظاهر في قائمة
+                    // الطلبات وتفاصيله ولا يعرفه المصنع إن راجعه به.
+                    _DetailRow(icon: Icons.tag_rounded, label: 'رقم الطلب', value: '$orderId'),
                     const SizedBox(height: 10),
                     _DetailRow(icon: Icons.factory_outlined, label: 'اسم المصنع', value: factoryName),
                     const SizedBox(height: 10),
@@ -285,13 +291,20 @@ class _DetailRow extends StatelessWidget {
             color: AppColors.ink500,
           ),
         ),
-        const Spacer(),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: AppColors.ink900,
+        const SizedBox(width: 12),
+        // `Expanded` بدل `Spacer` ونصّ غير مقيّد: اسم مصنع أو نوع خرسانة
+        // طويل كان يتجاوز حدود الصفّ (قِيس على ٣٢٠dp و٣٦٠dp).
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.ink900,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
