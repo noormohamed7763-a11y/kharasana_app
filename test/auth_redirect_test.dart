@@ -129,39 +129,82 @@ void main() {
     });
   });
 
-  group('resolveAuthRedirect — أدوار غير مغطّاة (سلوك حالي موثَّق)', () {
-    // `UserRole` فيه أربعة أدوار (admin, factoryEmployee, driver, client)
-    // لكن الحماية تشترط 'driver' أو 'client' نصّاً، فبقية الأدوار — ودورٌ
-    // مفقود — تمرّ إلى مسارات الطرفين. هذه الاختبارات تُثبّت الواقع كما هو
-    // حتى لا يتغيّر صمتاً؛ تشديدها قرار منتج (سيُخرج المدير وموظف المصنع
-    // من واجهة العميل التي يستخدمانها اليوم).
-    test('المدير يمرّ إلى مسارات العميل والسائق', () async {
+  group('resolveAuthRedirect — أدوار بلا واجهة في التطبيق', () {
+    // `UserRole` فيه أربعة أدوار، والتطبيق يضمّ واجهتين فقط: العميل والسائق.
+    // المدير وموظف المصنع يسجّلان الدخول بنجاح في الخادم، لكن لا شاشة رئيسية
+    // لهما هنا — وكذلك جلسة لم يُخزَّن دورها أو خُزِّن بحالة أحرف مختلفة.
+    //
+    // كانت هذه الأدوار تمرّ إلى مسارات العميل والسائق كلّها. الآن تُمنع:
+    // تُردّ عن كلّ مسار محمي، وتُترك على شاشة الدخول (`null`) لا تُوجَّه
+    // إليها، فلا توجيه إلى الموضع نفسه.
+    test('المدير يُمنع من مسارات العميل والسائق', () async {
       final admin = _FakeStorage(token: 'jwt', role: 'admin');
-      expect(await resolveAuthRedirect(admin, AppRoutes.clientHome), isNull);
-      expect(await resolveAuthRedirect(admin, AppRoutes.driverHome), isNull);
+      expect(
+        await resolveAuthRedirect(admin, AppRoutes.clientHome),
+        AppRoutes.login,
+      );
+      expect(
+        await resolveAuthRedirect(admin, AppRoutes.driverHome),
+        AppRoutes.login,
+      );
     });
 
-    test('موظف المصنع يمرّ إلى مسارات العميل والسائق', () async {
+    test('موظف المصنع يُمنع من مسارات العميل والسائق', () async {
       final employee = _FakeStorage(token: 'jwt', role: 'FactoryEmployee');
-      expect(await resolveAuthRedirect(employee, AppRoutes.clientHome), isNull);
-      expect(await resolveAuthRedirect(employee, AppRoutes.driverHome), isNull);
+      expect(
+        await resolveAuthRedirect(employee, AppRoutes.clientHome),
+        AppRoutes.login,
+      );
+      expect(
+        await resolveAuthRedirect(employee, AppRoutes.driverHome),
+        AppRoutes.login,
+      );
     });
 
-    test('جلسة بلا دور مخزَّن تمرّ إلى مسارات الطرفين', () async {
+    test('جلسة بلا دور مخزَّن تُمنع من مسارات الطرفين', () async {
       final noRole = _FakeStorage(token: 'jwt');
-      expect(await resolveAuthRedirect(noRole, AppRoutes.clientHome), isNull);
-      expect(await resolveAuthRedirect(noRole, AppRoutes.driverHome), isNull);
+      expect(
+        await resolveAuthRedirect(noRole, AppRoutes.clientHome),
+        AppRoutes.login,
+      );
+      expect(
+        await resolveAuthRedirect(noRole, AppRoutes.driverHome),
+        AppRoutes.login,
+      );
     });
 
     test('الدور حسّاس لحالة الأحرف: "Client" لا يُطابق "client"', () async {
+      // الدور يُخزَّن من `UserRole.name` (حروف صغيرة) في
+      // `AuthRepositoryImpl.login`، فقيمة بحالة أحرف أخرى تعني تخزيناً
+      // تالفاً — تُعامَل كدور غير معروف لا كعميل.
       final cased = _FakeStorage(token: 'jwt', role: 'Client');
-      // لا يُمنع من مسارات السائق، ويُوجَّه من شاشة الدخول إلى رئيسية العميل
-      // (لأن الفرع الأخير هو else) — فالمطابقة النصّية هنا هشّة.
-      expect(await resolveAuthRedirect(cased, AppRoutes.driverHome), isNull);
       expect(
-        await resolveAuthRedirect(cased, AppRoutes.login),
-        AppRoutes.clientHome,
+        await resolveAuthRedirect(cased, AppRoutes.driverHome),
+        AppRoutes.login,
       );
+      expect(
+        await resolveAuthRedirect(cased, AppRoutes.clientHome),
+        AppRoutes.login,
+      );
+    });
+
+    test('لا توجيه إلى شاشة الدخول وهو عليها أصلاً', () async {
+      // شرط بقاء المستخدم قادراً على تسجيل الدخول: لو أعاد التوجيه إلى
+      // `/login` وهو على `/login` لصار الحارس يقرأ كأنه يفعل شيئاً وهو لا
+      // يفعل، ويُخفي أن شاشة الدخول هي المسؤولة عن إبلاغ هذه الأدوار.
+      for (final role in [null, 'admin', 'FactoryEmployee', 'Client']) {
+        final storage = _FakeStorage(token: 'jwt', role: role);
+        expect(
+          await resolveAuthRedirect(storage, AppRoutes.login),
+          isNull,
+          reason: 'الدور $role يجب أن يبقى على شاشة الدخول',
+        );
+        expect(
+          await resolveAuthRedirect(storage, AppRoutes.register),
+          isNull,
+          reason: 'الدور $role يجب أن يبقى على شاشة التسجيل',
+        );
+      }
     });
   });
 }

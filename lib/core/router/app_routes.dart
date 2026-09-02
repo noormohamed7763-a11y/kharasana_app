@@ -1,3 +1,8 @@
+/// مسارات التطبيق.
+///
+/// كلّ ثابت هنا يقابله `GoRoute` في [buildRouter]. حُذف من هذه القائمة
+/// ثابتان لا وجود لمساريهما (`/client/factories/:id` و`/driver/orders`):
+/// استدعاء أيّ منهما كان يُنتج شاشة خطأ «no routes for location».
 class AppRoutes {
   AppRoutes._();
 
@@ -13,7 +18,6 @@ class AppRoutes {
   // ============================================================
   static const clientHome = '/client/home';
   static const clientFactories = '/client/factories';
-  static const clientFactoryDetails = '/client/factories/:id';
   static const clientOrders = '/client/orders';
   static const clientOrderCreate = '/client/orders/create';
   static const clientOrderDetails = '/client/orders/:id';
@@ -23,7 +27,6 @@ class AppRoutes {
   // Driver Routes
   // ============================================================
   static const driverHome = '/driver/home';
-  static const driverOrders = '/driver/orders';
   static const driverOrderDetails = '/driver/orders/:id';
   static const driverProfile = '/driver/profile';
 }

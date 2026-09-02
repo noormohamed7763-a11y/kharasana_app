@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/errors/failure.dart';
 import '../../../../core/providers/core_providers.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/repositories/orders_repository.dart';
@@ -60,12 +61,20 @@ class OrdersListController extends StateNotifier<OrdersListState> {
 
   Future<void> loadFirstPage() async {
     state = const OrdersListLoading();
-    try {
-      final result = await _repository.getOrders(pageNumber: 1).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => throw Exception('انتهت مهلة الاتصال بالخادم'),
-      );
-      switch (result) {
+
+    final result = await _repository.getOrders(pageNumber: 1).timeout(
+          const Duration(seconds: 10),
+          // مهلة نوعها معروف بدل `throw Exception`: الرسالة التي يراها
+          // المستخدم تصير «استغرق الطلب وقتاً طويلاً» لا «حدث خطأ» المبهمة.
+          onTimeout: () => const Error(TimeoutFailure()),
+        );
+
+    // المزوّد `autoDispose`: الخروج من الشاشة قبل وصول الرد يتلف الـnotifier،
+    // والكتابة على `state` بعدها ترمي
+    // «Bad state: Tried to use OrdersListController after dispose».
+    if (!mounted) return;
+
+    switch (result) {
       case Success(data: final paged):
         state = OrdersListLoaded(
           items: paged.items,
@@ -75,9 +84,6 @@ class OrdersListController extends StateNotifier<OrdersListState> {
       case Error(failure: final failure):
         state = OrdersListError(failure.messageAr);
     }
-    } catch (e) {
-      state = const OrdersListError('حدث خطأ أثناء تحميل الطلبات');
-    }
   }
 
   Future<void> loadMore() async {
@@ -86,7 +92,10 @@ class OrdersListController extends StateNotifier<OrdersListState> {
     if (!current.hasMore || current.isLoadingMore) return;
 
     state = current.copyWith(isLoadingMore: true);
-    final result = await _repository.getOrders(pageNumber: current.pageNumber + 1);
+    final result =
+        await _repository.getOrders(pageNumber: current.pageNumber + 1);
+    if (!mounted) return;
+
     switch (result) {
       case Success(data: final paged):
         state = current.copyWith(

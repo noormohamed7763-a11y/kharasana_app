@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../network/dio_client.dart';
 import '../session/session_user.dart';
 import '../storage/secure_storage_service.dart';
-import '../utils/api_enums.dart';
 import '../../features/authentication/data/datasources/auth_remote_data_source.dart';
 import '../../features/authentication/data/repositories/auth_repository_impl.dart';
 import '../../features/authentication/domain/repositories/auth_repository.dart';
@@ -92,21 +91,19 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 // ============================================================
 // 👤 Session User Provider (من التخزين المحلي)
 // ============================================================
+//
+// حالة توفّر السائق ليست هنا: يقرأها `DriverStatusController` من التخزين
+// مباشرةً. إبقاؤها هنا كان يعني إبطال هذا المزوّد بعد كل تبديل حالة.
 final sessionUserProvider = FutureProvider.autoDispose<SessionUser>((ref) async {
   final storage = ref.watch(secureStorageProvider);
   final userId = await storage.readUserId();
   final fullName = await storage.readFullName();
   final role = await storage.readRole();
-  final driverStatusIndex = await storage.readDriverStatus(); // ✅ جديد
-  
+
   return SessionUser(
     userId: userId,
     fullName: fullName,
     role: role,
-    driverStatus:
-        driverStatusIndex != null && driverStatusIndex < DriverStatus.values.length
-            ? DriverStatus.values[driverStatusIndex]
-            : null,
   );
 });
 
@@ -114,21 +111,14 @@ final sessionUserProvider = FutureProvider.autoDispose<SessionUser>((ref) async 
 // 📋 Simple Data Providers (تستخدم في الشاشات)
 // ============================================================
 final factoriesListProvider = FutureProvider.autoDispose((ref) async {
-  try {
-    final dataSource = ref.watch(factoriesRemoteDataSourceProvider);
-    final factories = await dataSource.getFactories().timeout(
-      const Duration(seconds: 10),
-      onTimeout: () => throw Exception('انتهت مهلة تحميل المصانع'),
-    );
-    return factories.where((f) => f.isActive).toList();
-  } catch (e) {
-    throw Exception('حدث خطأ في تحميل المصانع: $e');
-  }
+  final dataSource = ref.watch(factoriesRemoteDataSourceProvider);
+  final factories = await guardFailure(dataSource.getFactories);
+  return factories.where((f) => f.isActive).toList();
 });
 
 final concreteTypesListProvider = FutureProvider.autoDispose((ref) async {
   final dataSource = ref.watch(concreteTypesRemoteDataSourceProvider);
-  final types = await dataSource.getConcreteTypes();
+  final types = await guardFailure(dataSource.getConcreteTypes);
   return types.where((t) => t.isActive).toList();
 });
 

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/notifications_button.dart';
+import '../../../../core/errors/failure.dart';
 import '../../../../core/providers/core_providers.dart';
-import '../../../../core/router/app_routes.dart';
+import '../../../../core/session/logout_action.dart';
 import '../../../../core/utils/api_enums.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../core/widgets/error_state.dart';
@@ -21,7 +23,6 @@ class DriverHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(driverOrdersProvider);
     final sessionAsync = ref.watch(sessionUserProvider);
-    final storage = ref.read(secureStorageProvider);
 
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
@@ -37,23 +38,12 @@ class DriverHomeScreen extends ConsumerWidget {
             fontSize: 18,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink700),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('لا توجد تنبيهات جديدة')),
-            );
-          },
-        ),
+        leading: const NotificationsButton(),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.brand700),
             tooltip: 'تسجيل الخروج',
-            onPressed: () async {
-              await storage.clearSession();
-              if (!context.mounted) return;
-              context.go(AppRoutes.login);
-            },
+            onPressed: () => confirmAndLogout(context, ref),
           ),
         ],
       ),
@@ -91,12 +81,10 @@ class DriverHomeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 14),
 
-            // 2. حالة توفّر السائق — مصدرها محلي بسبب 403 على GET /api/Users/{id}
-            sessionAsync.when(
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
-              data: (user) => DriverStatusSelector(currentStatus: user.driverStatus),
-            ),
+            // 2. حالة توفّر السائق — تدير حالتها بنفسها عبر
+            // driverStatusControllerProvider، فلا تُغلَّف بـ sessionAsync.when
+            // لأن ذلك كان يهدمها من الشجرة بعد كل تحديث ناجح.
+            const DriverStatusSelector(),
             const SizedBox(height: 22),
 
             // 3. Driver Capabilities / Powers Overview

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import '../constants/app_constants.dart';
 import '../errors/failure.dart';
@@ -83,7 +85,7 @@ Failure mapDioError(DioException e) {
               return ValidationFailure(message);
             }
           }
-          return ValidationFailure('البيانات المدخلة غير صحيحة.');
+          return const ValidationFailure('البيانات المدخلة غير صحيحة.');
 
         case 401:
           return const UnauthorizedFailure();
@@ -92,7 +94,9 @@ Failure mapDioError(DioException e) {
         case 404:
           return const NotFoundFailure();
         case 409:
-          return ValidationFailure('البريد الإلكتروني أو رقم الهاتف مسجل بالفعل.');
+          return const ValidationFailure(
+            'البريد الإلكتروني أو رقم الهاتف مسجل بالفعل.',
+          );
         case 500:
         default:
           return const ServerFailure();
@@ -127,11 +131,39 @@ Map<String, List<String>>? _extractFieldErrors(dynamic data) {
   return null;
 }
 
-/// ✅ معالجة الأخطاء غير المتوقعة (مثل أخطاء التحويل من JSON)
+/// معالجة الأخطاء غير المتوقعة (مثل أخطاء التحويل من JSON)
 Failure mapUnexpectedError(Object error, StackTrace stackTrace) {
   AppLogger.error('DataLayer', error, stackTrace, 'خطأ غير متوقع في طبقة البيانات');
   if (error is TypeError) {
     return const ParseFailure('خطأ في قراءة البيانات من الخادم.');
   }
   return const UnknownFailure();
+}
+
+/// ينفّذ نداءً شبكياً ويحوّل أي خطأ إلى [Failure] يُرمى كما هو.
+///
+/// للمزوّدات التي تقرأ من مصدر البيانات مباشرةً بلا مستودع (المصانع وأنواع
+/// الخرسانة). كانت تلفّ الخطأ في `Exception` نصّية — ومرّتين في حالة
+/// المصانع: مرة في مصدر البيانات ومرة في المزوّد — فتضيع هوية الخطأ:
+/// انتهاء الجلسة (401) يصل إلى الشاشة كنصّ
+/// `Exception: حدث خطأ في تحميل المصانع: Exception: ...` بدل رسالة
+/// [UnauthorizedFailure] التي تطلب تسجيل الدخول.
+///
+/// يُرمى [Failure] نفسه لا `Exception` تغلّفه، فتعرض الشاشة `messageAr`
+/// مباشرةً عبر `failureMessage`.
+Future<T> guardFailure<T>(
+  Future<T> Function() call, {
+  Duration timeout = const Duration(seconds: 15),
+}) async {
+  try {
+    return await call().timeout(timeout);
+  } on DioException catch (e) {
+    throw mapDioError(e);
+  } on TimeoutException {
+    throw const TimeoutFailure();
+  } on Failure {
+    rethrow;
+  } catch (e, st) {
+    throw mapUnexpectedError(e, st);
+  }
 }

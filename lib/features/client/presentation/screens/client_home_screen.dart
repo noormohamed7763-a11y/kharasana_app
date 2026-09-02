@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/notifications_button.dart';
 import '../../../../core/providers/core_providers.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/session/logout_action.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/api_enums.dart';
 import '../../../../core/widgets/status_badge.dart';
@@ -68,23 +70,12 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
             fontSize: 18,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.notifications_none_rounded,
-            color: AppColors.ink700,
-          ),
-          tooltip: 'الإشعارات',
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('لا توجد إشعارات جديدة')),
-            );
-          },
-        ),
+        leading: const NotificationsButton(),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.brand700),
             tooltip: 'تسجيل الخروج',
-            onPressed: _confirmLogout,
+            onPressed: () => confirmAndLogout(context, ref),
           ),
         ],
       ),
@@ -233,33 +224,6 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
     };
   }
 
-  Future<void> _confirmLogout() async {
-    // زرّ الخروج كان ينهي الجلسة من أول لمسة، وهو مجاور لزرّ الإشعارات في
-    // شريط علوي واحد على شاشة يُستخدم فيها التطبيق بيد واحدة في الموقع.
-    final leave = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('تسجيل الخروج'),
-        content: const Text('هل تريد الخروج من حسابك؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('خروج'),
-          ),
-        ],
-      ),
-    );
-    if (leave != true || !mounted) return;
-
-    await ref.read(secureStorageProvider).clearSession();
-    if (!mounted) return;
-    context.go(AppRoutes.login);
-  }
 }
 
 // ============================================================================

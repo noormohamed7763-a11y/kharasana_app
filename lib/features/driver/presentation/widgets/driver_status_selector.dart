@@ -2,41 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/api_enums.dart';
-import '../providers/driver_providers.dart';
+import '../providers/driver_status_controller.dart';
 
-/// شريحة تبديل حالة توفّر السائق.
+/// شريحة تبديل حالة توفّر السائق (متاح / مشغول / غير متصل).
 ///
-/// تُقرأ من [SessionUser] المحلي (لا شبكة، لأن قراءتها من الخادم محظورة
-/// حالياً بـ 403)، وتُحدَّث عبر [driverStatusUpdateProvider].
-class DriverStatusSelector extends ConsumerStatefulWidget {
-  const DriverStatusSelector({super.key, required this.currentStatus});
-  final DriverStatus? currentStatus;
+/// كانت هذه الشريحة سابقاً تُبنى داخل `sessionUserProvider.when(...)`، فكان
+/// إبطال ذلك المزوّد بعد كل تحديث ناجح يُعيده إلى حالة التحميل ويهدم الشريحة
+/// من شجرة الواجهة ثم يبنيها من جديد — فتبدو الضغطة كأنها لم تفعل شيئاً.
+/// الآن تقرأ من [driverStatusControllerProvider] الذي يحتفظ بالحالة بنفسه.
+class DriverStatusSelector extends ConsumerWidget {
+  const DriverStatusSelector({super.key});
 
   @override
-  ConsumerState<DriverStatusSelector> createState() => _DriverStatusSelectorState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(driverStatusControllerProvider);
+    final controller = ref.read(driverStatusControllerProvider.notifier);
 
-class _DriverStatusSelectorState extends ConsumerState<DriverStatusSelector> {
-  bool _isUpdating = false;
-
-  Future<void> _changeStatus(DriverStatus status) async {
-    if (status == widget.currentStatus || _isUpdating) return;
-    setState(() => _isUpdating = true);
-    try {
-      await ref.read(driverStatusUpdateProvider(status).future);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذر تحديث حالتك، حاول مرة أخرى.')),
+    // الخطأ يُعرَض مرة واحدة بعد اكتمال الإطار، ثم يُمسح من الحالة حتى لا
+    // يتكرّر مع كل إعادة بناء لاحقة.
+    ref.listen<DriverStatusState>(driverStatusControllerProvider, (_, next) {
+      final error = next.error;
+      if (error == null) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: AppColors.error,
+          ),
         );
-      }
-    } finally {
-      if (mounted) setState(() => _isUpdating = false);
-    }
-  }
+      controller.clearError();
+    });
 
-  @override
-  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -54,61 +51,124 @@ class _DriverStatusSelectorState extends ConsumerState<DriverStatusSelector> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'حالتك الحالية',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.ink500),
+          Row(
+            children: [
+              const Text(
+                'حالتك الحالية',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.ink500,
+                ),
+              ),
+              const Spacer(),
+              if (state.current != null)
+                Text(
+                  state.current!.arabicLabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: state.current!.color,
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 10),
-          if (_isUpdating)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: CircularProgressIndicator(strokeWidth: 2),
+          Row(
+            children: DriverStatus.values.map((status) {
+              return Expanded(
+                child: _StatusChip(
+                  status: status,
+                  isSelected: state.current == status,
+                  isSending: state.pending == status,
+                  // أثناء الإرسال تُعطَّل الشرائح كلها لمنع طلبين متزامنين،
+                  // لكنها تبقى مرئية بدل استبدالها بمؤشّر تحميل واحد.
+                  isEnabled: !state.isSending && !state.isInitializing,
+                  onTap: () => controller.select(status),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({
+    required this.status,
+    required this.isSelected,
+    required this.isSending,
+    required this.isEnabled,
+    required this.onTap,
+  });
+
+  final DriverStatus status;
+  final bool isSelected;
+  final bool isSending;
+  final bool isEnabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = isSelected ? status.color : AppColors.ink500;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      enabled: isEnabled,
+      label: status.arabicLabel,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3),
+        child: Material(
+          color: isSelected
+              ? status.color.withValues(alpha: 0.12)
+              : AppColors.surfaceSubtle,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: isEnabled ? onTap : null,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? status.color : AppColors.border,
+                  width: isSelected ? 1.5 : 1,
+                ),
               ),
-            )
-          else
-            Row(
-              children: DriverStatus.values.map((status) {
-                final isSelected = widget.currentStatus == status;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => _changeStatus(status),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? status.color.withValues(alpha: 0.12)
-                            : AppColors.surfaceSubtle,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected ? status.color : AppColors.border,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: isSending
+                        ? CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: status.color,
+                          )
+                        : Icon(
                             status.icon,
                             size: 20,
                             color: isSelected ? status.color : AppColors.ink300,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            status.arabicLabel,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ? status.color : AppColors.ink500,
-                            ),
-                          ),
-                        ],
-                      ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    status.arabicLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: foreground,
                     ),
                   ),
-                );
-              }).toList(),
+                ],
+              ),
             ),
-        ],
+          ),
+        ),
       ),
     );
   }

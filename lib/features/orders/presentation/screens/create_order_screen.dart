@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/widgets/notifications_button.dart';
+import '../../../../core/errors/failure.dart';
 import '../../../../core/providers/core_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -99,6 +100,17 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       );
       return;
     }
+    // المضخة تُلزم رقم الدور في `OrderDraft.isSiteAndTechnicalValid`. بلا هذا
+    // الفحص كان `submit()` يرفض الطلب برسالة «يرجى إكمال جميع البيانات
+    // المطلوبة» العامّة، فلا يعرف المستخدم أيّ حقل ينقصه.
+    if (draft.needPump && draft.floorNumber == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('اخترت المضخة، فيرجى إدخال رقم الدور (الأرضي = 0)'),
+        ),
+      );
+      return;
+    }
 
     setState(() => _isSubmitting = true);
     final result = await controller.submit();
@@ -157,10 +169,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
             fontSize: 18,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink700),
-          onPressed: () {},
-        ),
+        leading: const NotificationsButton(),
         actions: [
           IconButton(
             icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.brand700),
@@ -285,7 +294,11 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       },
                     ),
                     loading: () => const Center(child: LinearProgressIndicator()),
-                    error: (_, __) => const Text('تعذر تحميل المصانع'),
+                    error: (error, __) => _InlineNotice(
+                      icon: Icons.error_outline_rounded,
+                      text: failureMessage(error),
+                      isError: true,
+                    ),
                   ),
                   const SizedBox(height: 14),
 
@@ -299,9 +312,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                   else
                     ref.watch(concreteTypesByFactoryProvider(draft.factoryId!)).when(
                           loading: () => const Center(child: LinearProgressIndicator()),
-                          error: (_, __) => const _InlineNotice(
+                          error: (error, __) => _InlineNotice(
                             icon: Icons.error_outline_rounded,
-                            text: 'تعذر تحميل أنواع الخرسانة، حاول مرة أخرى',
+                            text: failureMessage(error),
                             isError: true,
                           ),
                           data: (types) {
@@ -536,8 +549,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                           const SizedBox(width: 10),
                           Text(
                             _selectedDate != null
-                                ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                                : 'اختر تاريخ الصب (mm/dd/yyyy)',
+                                ? AppFormat.date(_selectedDate!)
+                                : 'اختر تاريخ الصب',
                             style: TextStyle(
                               fontSize: 14,
                               color: _selectedDate != null
@@ -741,18 +754,21 @@ class _PriceSummaryCard extends StatelessWidget {
 
   static Widget _row(String label, String value) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
           style: const TextStyle(fontSize: 12, color: AppColors.ink700),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.ink900,
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.ink900,
+            ),
           ),
         ),
       ],

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/errors/failure.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/error_state.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../providers/order_details_provider.dart';
 import '../../../../core/utils/app_format.dart';
@@ -22,27 +23,13 @@ class OrderDetailsScreen extends ConsumerWidget {
       ),
       body: detailsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: AppColors.error),
-              const SizedBox(height: AppSpacing.md),
-              const Text(
-                'تعذر تحميل تفاصيل الطلب',
-                style: AppTextStyles.h3,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              ElevatedButton(
-                onPressed: () => ref.invalidate(orderDetailsProvider(orderId)),
-                child: const Text('إعادة المحاولة'),
-              ),
-            ],
-          ),
+        // `ErrorStateView` بدل عمود مكتوب هنا: نفس المكوّن الذي تستخدمه بقية
+        // الشاشات، ويعرض سبب الفشل الحقيقي بدل نصّ عامّ.
+        error: (error, _) => ErrorStateView(
+          message: failureMessage(error),
+          onRetry: () => ref.invalidate(orderDetailsProvider(orderId)),
         ),
         data: (order) {
-          final dateFormat = DateFormat('d MMMM yyyy', 'ar');
-
           return SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
@@ -97,7 +84,7 @@ class OrderDetailsScreen extends ConsumerWidget {
                   if (order.needPump && order.floorNumber != null)
                     _InfoRow('الطابق', order.floorNumber!.toString()),
                   if (order.pouringDate != null)
-                    _InfoRow('موعد الصب', dateFormat.format(order.pouringDate!)),
+                    _InfoRow('موعد الصب', AppFormat.date(order.pouringDate!)),
                 ]),
 
                 const SizedBox(height: AppSpacing.md),

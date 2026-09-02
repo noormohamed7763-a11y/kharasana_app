@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/notifications_button.dart';
+import '../../../../core/errors/failure.dart';
 import '../../../../core/providers/core_providers.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/widgets/empty_state.dart';
@@ -38,10 +40,7 @@ class _FactoriesListScreenState extends ConsumerState<FactoriesListScreen> {
             fontSize: 18,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink700),
-          onPressed: () {},
-        ),
+        leading: const NotificationsButton(),
         actions: [
           IconButton(
             icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.brand700),
@@ -56,7 +55,7 @@ class _FactoriesListScreenState extends ConsumerState<FactoriesListScreen> {
       body: factoriesAsync.when(
         loading: () => const LoadingList(),
         error: (error, stack) => ErrorStateView(
-          message: 'حدث خطأ في تحميل المصانع',
+          message: failureMessage(error),
           onRetry: () => ref.invalidate(factoriesListProvider),
         ),
         data: (factories) {
@@ -95,24 +94,6 @@ class _FactoriesListScreenState extends ConsumerState<FactoriesListScreen> {
                             contentPadding: EdgeInsets.symmetric(vertical: 12),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Container(
-                      height: 48,
-                      width: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.tune_rounded, color: AppColors.brand800, size: 22),
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('تم تفعيل التصفية التلقائية')),
-                          );
-                        },
                       ),
                     ),
                   ],

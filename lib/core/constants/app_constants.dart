@@ -83,16 +83,3 @@ class AppConstants {
     return debugMode;
   }
 }
-
-// ================================================================
-// Secure Storage Keys
-// ================================================================
-
-class StorageKeys {
-  StorageKeys._();
-
-  static const String jwtToken = 'kharasana_jwt_token';
-  static const String userRole = 'kharasana_user_role';
-  static const String userId = 'kharasana_user_id';
-  static const String userFullName = 'kharasana_user_full_name';
-}

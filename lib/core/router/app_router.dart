@@ -42,16 +42,20 @@ Future<String?> resolveAuthRedirect(
   // إذا كانت هناك جلسة والمستخدم يحاول الوصول إلى login أو register
   if (hasSession && isAuthRoute) {
     final role = await secureStorage.readRole();
-    
-    // ✅ الأهم: لا نرسل أي دور غير معروف إلى Client افتراضياً
+
+    // لا نرسل أي دور غير معروف إلى Client افتراضياً
     if (role == UserRole.driver.name) {
       return AppRoutes.driverHome;
     } else if (role == UserRole.client.name) {
       return AppRoutes.clientHome;
     } else {
-      // Admin / FactoryEmployee / null / غير معروف
-      // ليس لديهم صفحات رئيسية في التطبيق الحالي
-      return AppRoutes.login;
+      // Admin / FactoryEmployee / null / غير معروف: لا شاشة رئيسية لهم في هذا
+      // التطبيق. نُبقيهم على شاشة الدخول (`null`) ولا نوجّههم إليها.
+      //
+      // إرجاع `AppRoutes.login` هنا كان توجيهاً إلى الموضع الحالي نفسه —
+      // لا يفعل شيئاً في go_router، لكنه يقرأ كأنه حماية. شاشة الدخول هي
+      // التي تُبلغ هذه الأدوار أن التطبيق للعملاء والسائقين وتُنهي جلستها.
+      return null;
     }
   }
 
@@ -167,7 +171,7 @@ GoRouter buildRouter(SecureStorageService secureStorage) {
           return DriverOrderDetailsScreen(orderId: id);
         },
       ),
-      // TODO: GoRoute(path: AppRoutes.driverOrders, ...)
+      // لا مسار مستقلّ لقائمة طلبات السائق: شاشته الرئيسية هي القائمة.
     ],
   );
 }

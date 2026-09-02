@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/widgets/notifications_button.dart';
 import '../../../../core/providers/core_providers.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/session/logout_action.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -14,16 +17,12 @@ class ClientProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionAsync = ref.watch(sessionUserProvider);
-    final storage = ref.read(secureStorageProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('حسابي'),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.notifications_none_rounded),
-          onPressed: () {},
-        ),
+        leading: const NotificationsButton(),
       ),
       bottomNavigationBar: const ClientBottomNavBar(currentIndex: 2),
       body: sessionAsync.when(
@@ -118,7 +117,25 @@ class ClientProfileScreen extends ConsumerWidget {
                     _ProfileMenuItem(
                       icon: Icons.info_outline,
                       title: 'عن منصة خرسانة',
-                      onTap: () {},
+                      // كان `onTap: () {}` — عنصر قائمة يُضاء عند اللمس ولا
+                      // يفتح شيئاً.
+                      onTap: () => showAboutDialog(
+                        context: context,
+                        applicationName: AppConstants.appName,
+                        applicationVersion: 'الإصدار 1.0.0',
+                        applicationIcon: const Icon(
+                          Icons.local_shipping_rounded,
+                          color: AppColors.primary,
+                          size: 40,
+                        ),
+                        children: const [
+                          Text(
+                            'منصة لطلب الخرسانة الجاهزة ومتابعة شحناتها بين '
+                            'العميل والمصنع والسائق.',
+                            style: TextStyle(height: 1.5),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -130,11 +147,7 @@ class ClientProfileScreen extends ConsumerWidget {
                 width: double.infinity,
                 height: 50,
                 child: OutlinedButton.icon(
-                  onPressed: () async {
-                    await storage.clearSession();
-                    if (!context.mounted) return;
-                    context.go(AppRoutes.login);
-                  },
+                  onPressed: () => confirmAndLogout(context, ref),
                   icon: const Icon(Icons.logout_rounded, color: AppColors.error),
                   label: const Text(
                     'تسجيل الخروج',
