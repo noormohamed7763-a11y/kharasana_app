@@ -49,13 +49,13 @@ class AppConstants {
     // 3. Android Emulator
     // ----------------------------------------------------------
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5000';
+      return 'http://192.168.160.91:5000';
     }
 
     // ----------------------------------------------------------
     // 4. Physical device / local network
     // ----------------------------------------------------------
-    return 'http://192.168.8.154:5000';
+    return 'http://192.168.160.91:5000';
   }
 
   /// Ensures that the base URL does not end with '/'.
