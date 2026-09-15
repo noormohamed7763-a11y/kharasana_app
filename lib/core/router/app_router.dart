@@ -12,6 +12,8 @@ import '../../features/driver/presentation/screens/driver_home_screen.dart';
 import '../../features/driver/presentation/screens/driver_order_details_screen.dart';
 import '../../features/driver/presentation/screens/driver_profile_screen.dart';
 import '../../features/factories/presentation/screens/factories_list_screen.dart';
+import '../../features/factories/presentation/screens/factory_details_screen.dart';
+import '../../features/factories/data/models/factory_dto.dart';
 import '../../features/orders/presentation/screens/create_order_screen.dart';
 import '../../features/orders/presentation/screens/order_details_screen.dart';
 import '../../features/orders/presentation/screens/orders_list_screen.dart';
@@ -115,6 +117,24 @@ GoRouter buildRouter(SecureStorageService secureStorage) {
       GoRoute(
         path: AppRoutes.clientFactories,
         builder: (context, state) => const FactoriesListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.clientFactoryDetails,
+        builder: (context, state) {
+          final factory = state.extra is FactoryDto
+              ? state.extra as FactoryDto
+              : null;
+          if (factory != null) {
+            // المسار العادي: جاهز من بطاقة القائمة — بلا إعادة جلب.
+            return FactoryDetailsScreen(factory: factory);
+          }
+          // فتح مباشر بـ `:id` (استعادة الحالة أو deep link): `extra` لا يصل،
+          // فتُسند الشاشة بمعرّف تجلبه من الخادم.
+          final idParam = state.pathParameters['id'];
+          return FactoryDetailsScreen(
+            factoryId: idParam != null ? int.tryParse(idParam) : null,
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.clientOrders,

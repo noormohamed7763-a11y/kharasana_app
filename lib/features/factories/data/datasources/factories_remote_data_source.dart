@@ -21,4 +21,23 @@ class FactoriesRemoteDataSource {
     );
     return apiResponse.data ?? <FactoryDto>[];
   }
+
+  /// جلب مصنع واحد بالمعرّف.
+  ///
+  /// يُستعمل في شاشة التفاصيل عندما يُفتح المسار مباشرةً بـ `:id` (استعادة
+  /// الحالة أو رابط خارجي) حيث لا يتوفّر [FactoryDto] جاهز من `extra`.
+  /// بلا `try/catch` لذات سبب `getFactories`: إخفاء النوع من ديَّو قبل
+  /// `guardFailure` يجعل رسالة الخطأ تفقد هويتها.
+  Future<FactoryDto> getFactoryById(int id) async {
+    final response = await _dio.get(ApiEndpoints.factoryById(id));
+    final apiResponse = ApiResponse<FactoryDto>.fromJson(
+      response.data as Map<String, dynamic>,
+      (json) => FactoryDto.fromJson(json as Map<String, dynamic>),
+    );
+    final data = apiResponse.data;
+    if (data == null) {
+      throw Exception('المصنع غير موجود أو غير متاح الآن.');
+    }
+    return data;
+  }
 }

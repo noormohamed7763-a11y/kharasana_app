@@ -8,6 +8,7 @@ import '../../features/authentication/data/datasources/auth_remote_data_source.d
 import '../../features/authentication/data/repositories/auth_repository_impl.dart';
 import '../../features/authentication/domain/repositories/auth_repository.dart';
 import '../../features/factories/data/datasources/factories_remote_data_source.dart';
+import '../../features/factories/data/models/factory_dto.dart';
 import '../../features/concrete_types/data/datasources/concrete_types_remote_data_source.dart';
 import '../../features/concrete_types/data/models/concrete_type_dto.dart';
 import '../../features/orders/data/datasources/orders_remote_data_source.dart';
@@ -114,6 +115,16 @@ final factoriesListProvider = FutureProvider.autoDispose((ref) async {
   final dataSource = ref.watch(factoriesRemoteDataSourceProvider);
   final factories = await guardFailure(dataSource.getFactories);
   return factories.where((f) => f.isActive).toList();
+});
+
+/// مصنع واحد بالمعرّف — لشاشة التفاصيل عند الفتح المباشر للمسار بـ `:id`
+/// (استعادة الحالة أو deep link) حيث لا يتوفّر الـ [FactoryDto] من `extra`.
+/// حين تأتي الشاشة وهي تحمل المصنع نفسه لا يُستدعى هذا المزوّد أبداً،
+/// فيُجنَّب طلب شبكة مهدور.
+final factoryByIdProvider =
+    FutureProvider.autoDispose.family<FactoryDto, int>((ref, id) async {
+  final dataSource = ref.watch(factoriesRemoteDataSourceProvider);
+  return guardFailure(() => dataSource.getFactoryById(id));
 });
 
 final concreteTypesListProvider = FutureProvider.autoDispose((ref) async {

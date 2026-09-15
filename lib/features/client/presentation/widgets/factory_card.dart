@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../factories/data/models/factory_dto.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -80,22 +81,7 @@ class FactoryCard extends StatelessWidget {
               const SizedBox(width: 12),
 
               // Factory Logo / Icon Container
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceSunken,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.borderWarm),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.factory_rounded,
-                    color: AppColors.brand800,
-                    size: 28,
-                  ),
-                ),
-              ),
+              _logoBadge(),
             ],
           ),
 
@@ -166,6 +152,50 @@ class FactoryCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// شارة الشعار: الصورة الحقيقية إن وُجدت، وسقوط احتياطي للأيقونة بغيرها
+  /// أو عند فشل التحميل.
+  Widget _logoBadge() {
+    final logo = factory.logo;
+    return Container(
+      width: 54,
+      height: 54,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSunken,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderWarm),
+      ),
+      child: (logo == null || logo.isEmpty)
+          ? const _FactoryLogoFallback(size: 54)
+          : CachedNetworkImage(
+              imageUrl: logo,
+              width: 54,
+              height: 54,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => const _FactoryLogoFallback(size: 54),
+              errorWidget: (_, __, ___) => const _FactoryLogoFallback(size: 54),
+            ),
+    );
+  }
+}
+
+/// أيقونة مصنع تُرسم حيث لا يوجد شعار حقيقي (أو أثناء تحميله).
+class _FactoryLogoFallback extends StatelessWidget {
+  const _FactoryLogoFallback({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Icon(
+        Icons.factory_rounded,
+        color: AppColors.brand800,
+        size: size * 0.52,
       ),
     );
   }

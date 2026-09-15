@@ -147,7 +147,9 @@ class _FactoriesListScreenState extends ConsumerState<FactoriesListScreen> {
                         child: FactoryCard(
                           factory: factory,
                           onTap: () => context.push(
-                            '${AppRoutes.clientOrderCreate}?factoryId=${factory.factoryId}',
+                            AppRoutes.clientFactoryDetails
+                                .replaceFirst(':id', '${factory.factoryId}'),
+                            extra: factory,
                           ),
                         ),
                       )),

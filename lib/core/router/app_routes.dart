@@ -18,6 +18,7 @@ class AppRoutes {
   // ============================================================
   static const clientHome = '/client/home';
   static const clientFactories = '/client/factories';
+  static const clientFactoryDetails = '/client/factories/:id';
   static const clientOrders = '/client/orders';
   static const clientOrderCreate = '/client/orders/create';
   static const clientOrderDetails = '/client/orders/:id';
